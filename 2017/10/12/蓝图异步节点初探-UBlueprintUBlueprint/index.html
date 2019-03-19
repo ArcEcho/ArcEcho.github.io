@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh_CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="蓝图层面上没有线程概念。那么蓝图中是如何处理异步操作的呢？本文会简单介绍UBlueprintAsyncActionBase，并用其实现简单的异步Http下载文件节点。">
+<meta name="keywords" content="UE4,UE4 C++,Blueprint">
+<meta property="og:type" content="article">
+<meta property="og:title" content="蓝图异步节点初探-UBlueprintAsyncActionBase">
+<meta property="og:url" content="http://yoursite.com/2017/10/12/蓝图异步节点初探-UBlueprintUBlueprint/index.html">
+<meta property="og:site_name" content="每天进补一点点！">
+<meta property="og:description" content="蓝图层面上没有线程概念。那么蓝图中是如何处理异步操作的呢？本文会简单介绍UBlueprintAsyncActionBase，并用其实现简单的异步Http下载文件节点。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2017/10/12/蓝图异步节点初探-UBlueprintUBlueprint/AsyncTaskDownloadImage_node.png">
+<meta property="og:image" content="http://yoursite.com/2017/10/12/蓝图异步节点初探-UBlueprintUBlueprint/demo.png">
+<meta property="og:updated_time" content="2019-03-08T04:14:28.897Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="蓝图异步节点初探-UBlueprintAsyncActionBase">
+<meta name="twitter:description" content="蓝图层面上没有线程概念。那么蓝图中是如何处理异步操作的呢？本文会简单介绍UBlueprintAsyncActionBase，并用其实现简单的异步Http下载文件节点。">
+<meta name="twitter:image" content="http://yoursite.com/2017/10/12/蓝图异步节点初探-UBlueprintUBlueprint/AsyncTaskDownloadImage_node.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/10/12/蓝图异步节点初探-UBlueprintUBlueprint/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>蓝图异步节点初探-UBlueprintAsyncActionBase | 每天进补一点点！</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh_CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">每天进补一点点！</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Navigationsleiste an/ausschalten">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Startseite</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archiv</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/12/蓝图异步节点初探-UBlueprintUBlueprint/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ArcEcho">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进补一点点！">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">蓝图异步节点初探-UBlueprintAsyncActionBase
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+
+              
+                
+              
+
+              <time title="Erstellt: 2017-10-12 14:02:02" itemprop="dateCreated datePublished" datetime="2017-10-12T14:02:02+08:00">2017-10-12</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Bearbeitet am</span>
+                
+                <time title="Geändert am: 2019-03-08 12:14:28" itemprop="dateModified" datetime="2019-03-08T12:14:28+08:00">2019-03-08</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">in</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tech/" itemprop="url" rel="index"><span itemprop="name">Tech</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>蓝图层面上没有线程概念。那么蓝图中是如何处理异步操作的呢？本文会简单介绍UBlueprintAsyncActionBase，并用其实现简单的异步Http下载文件节点。<br><a id="more"></a></p>
+<h3 id="阅读本文最好了解以下知识"><a href="#阅读本文最好了解以下知识" class="headerlink" title="阅读本文最好了解以下知识"></a>阅读本文最好了解以下知识</h3><ul>
+<li>线程（Thread）</li>
+<li>委派（Delegate）</li>
+<li>Http基础概念</li>
+</ul>
+<h3 id="自带的异步节点DownloadImage"><a href="#自带的异步节点DownloadImage" class="headerlink" title="自带的异步节点DownloadImage"></a>自带的异步节点DownloadImage</h3><p><img src="/2017/10/12/蓝图异步节点初探-UBlueprintUBlueprint/AsyncTaskDownloadImage_node.png" alt><br>UE4自带了一个以Http方式下载图片的节点。右上角的时钟标志表明此为一个异步节点<br>使用方式也是很简单的，输入Url，然后成功下载后在OnSuccess引脚执行流中就可以从Texture引脚得到图片资源。</p>
+<h4 id="节点分析"><a href="#节点分析" class="headerlink" title="节点分析"></a>节点分析</h4><ul>
+<li>这里可以看到有3个Exec pin，也就是说有3条执行流。Exec Out引脚如果你查看节点复制的文本代码的话，你会发现它被叫做Then引脚。但是实际上这里是一个异步操作，也就是你的图片下载和Exec Out的执行不是先后顺序，而是直接执行Exec out引脚后面的代码，下载过程会被异步执行，然后会各自调用两个On对应的引脚。</li>
+<li>Texture引脚非常特殊，这个引脚的内容应该且必须在OnSuccess执行流中去访问，这一点会在后面C++代码分析中提到。</li>
+</ul>
+<h4 id="对应代码分析"><a href="#对应代码分析" class="headerlink" title="对应代码分析"></a>对应代码分析</h4><p>蓝图节点对应代码UAsyncTaskDownloadImage类，其被归类于UMG下的Blueprint文件下。源代码头文件如下：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> once</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"CoreMinimal.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"UObject/ObjectMacros.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"Interfaces/IHttpRequest.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"Kismet/BlueprintAsyncActionBase.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"AsyncTaskDownloadImage.generated.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UTexture2DDynamic</span>;</span></span><br><span class="line"></span><br><span class="line">DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDownloadImageDelegate, UTexture2DDynamic*, Texture);</span><br><span class="line"></span><br><span class="line">UCLASS()</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UMG_API</span> <span class="title">UAsyncTaskDownloadImage</span> :</span> <span class="keyword">public</span> UBlueprintAsyncActionBase</span><br><span class="line">&#123;</span><br><span class="line">	GENERATED_UCLASS_BODY()</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	UFUNCTION(BlueprintCallable, meta=( BlueprintInternalUseOnly=<span class="string">"true"</span> ))</span><br><span class="line">	<span class="function"><span class="keyword">static</span> UAsyncTaskDownloadImage* <span class="title">DownloadImage</span><span class="params">(FString URL)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"></span><br><span class="line">	UPROPERTY(BlueprintAssignable)</span><br><span class="line">	FDownloadImageDelegate OnSuccess;</span><br><span class="line"></span><br><span class="line">	UPROPERTY(BlueprintAssignable)</span><br><span class="line">	FDownloadImageDelegate OnFail;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">Start</span><span class="params">(FString URL)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Handles image requests coming from the web */</span></span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">HandleImageRequest</span><span class="params">(FHttpRequestPtr HttpRequest, FHttpResponsePtr HttpResponse, <span class="keyword">bool</span> bSucceeded)</span></span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>首先该类继承自UBlueprintAsyncActionBase类，这个是必须的，如果你将这个类代码中的一部分代码直接移植到派生类中，虽然能够编译成功但是会崩溃。这就表明蓝图的解释系统对该类做了特殊的处理，因此生成那种特殊的节点。</li>
+<li>注意声明的FDownloadImageDelegate的signature，其参数实际上就是引脚的名称。然后注意类成员OnSuccess和OnFail的顺序，这里仅仅有且仅有第一个Delegate成员的signature会成为节点引脚。请注意这一段话，这个会影响我们后面自己实现一个节点的写法。</li>
+</ul>
+<p>cpp代码中主要看下面三个函数<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">UAsyncTaskDownloadImage::UAsyncTaskDownloadImage(<span class="keyword">const</span> FObjectInitializer&amp; ObjectInitializer)</span><br><span class="line">	: Super(ObjectInitializer)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span> ( HasAnyFlags(RF_ClassDefaultObject) == <span class="literal">false</span> )</span><br><span class="line">	&#123;</span><br><span class="line">		AddToRoot();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">UAsyncTaskDownloadImage* UAsyncTaskDownloadImage::DownloadImage(FString URL)</span><br><span class="line">&#123;</span><br><span class="line">	UAsyncTaskDownloadImage* DownloadTask = NewObject&lt;UAsyncTaskDownloadImage&gt;();</span><br><span class="line">	DownloadTask-&gt;Start(URL);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> DownloadTask;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> UAsyncTaskDownloadImage::Start(FString URL)</span><br><span class="line">&#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> !UE_SERVER</span></span><br><span class="line">	<span class="comment">// Create the Http request and add to pending request list</span></span><br><span class="line">	TSharedRef&lt;IHttpRequest&gt; HttpRequest = FHttpModule::Get().CreateRequest();</span><br><span class="line"></span><br><span class="line">	HttpRequest-&gt;OnProcessRequestComplete().BindUObject(<span class="keyword">this</span>, &amp;UAsyncTaskDownloadImage::HandleImageRequest);</span><br><span class="line">	HttpRequest-&gt;SetURL(URL);</span><br><span class="line">	HttpRequest-&gt;SetVerb(TEXT(<span class="string">"GET"</span>));</span><br><span class="line">	HttpRequest-&gt;ProcessRequest();</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">	<span class="comment">// On the server we don't execute fail or success we just don't fire the request.</span></span><br><span class="line">	RemoveFromRoot();</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>构造函数中将自己标记为不自动GC，是为了防止GC导致异步任务处理的对象被干掉。所以在执行完毕某些操作后需要手动还原GC标志。</li>
+<li>DownloadImage方法是一个静态方法，它就是最终暴露出的蓝图节点的主体。这个实际上就有点类似BlueprintFunctionLibrary。但是正如前面说的蓝图解释系统会对其做特殊处理，所以声明的delegate会以Exec pin方式出现，以及第一个delegate成员的signature会成为一个输出引脚。</li>
+<li>Start方法中注意BindUObject方法，将自身的一个成员函数绑定在了Http处理的委派上。</li>
+<li>实际上里Http在调用这些委派的时候不是在其所开辟的线程中调用的，事实上也不应该那么调用，因为在哪个线程执行Delgate那么其处理函数的执行上下文就是在哪个线程。这同时也说明了这个异步节点本身并没有提供实现异步操作的功能，实际上是对C++代码层线程的一个简单的包装，让节点显示的更加简单。</li>
+<li>这个节点功能实际上还是比较简陋，比如我们无法得知下载的进度。</li>
+</ul>
+<h3 id="模仿实现http文件下载的异步节点"><a href="#模仿实现http文件下载的异步节点" class="headerlink" title="模仿实现http文件下载的异步节点"></a>模仿实现http文件下载的异步节点</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> once</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"CoreMinimal.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"UObject/ObjectMacros.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"Interfaces/IHttpRequest.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"Kismet/BlueprintAsyncActionBase.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"AsyncTaskDownloadFile.generated.h"</span></span></span><br><span class="line"></span><br><span class="line">DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FDownloadFileUpdateProgressDelegate, int32, ReceivedDataInBytes, int32, TotalDataInBytes,<span class="keyword">const</span> TArray&lt;uint8&gt;&amp;, BinaryData);</span><br><span class="line">DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDownloadFileUnsuccssfullyDelegate);</span><br><span class="line"></span><br><span class="line">UCLASS()</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MYPROJECT_API</span> <span class="title">UAsyncTaskDownloadFile</span> :</span> <span class="keyword">public</span> UBlueprintAsyncActionBase</span><br><span class="line">&#123;</span><br><span class="line">	GENERATED_UCLASS_BODY()</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	UFUNCTION(BlueprintCallable, meta=( BlueprintInternalUseOnly=<span class="string">"true"</span> ))</span><br><span class="line">	<span class="function"><span class="keyword">static</span> UAsyncTaskDownloadFile* <span class="title">DownloadFile</span><span class="params">(FString URL)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	UPROPERTY(BlueprintAssignable, Category = <span class="string">"AsyncTaskDownloadFile"</span>, meta = (DisplayName = <span class="string">"On Update Progress"</span>))</span><br><span class="line">		FDownloadFileUpdateProgressDelegate OnUpdateProgress;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	UPROPERTY(BlueprintAssignable, Category = <span class="string">"AsyncTaskDownloadFile"</span>, meta = (DisplayName = <span class="string">"On Fail"</span>))</span><br><span class="line">		FDownloadFileUnsuccssfullyDelegate OnFail;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">Start</span><span class="params">(FString URL)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Handles image requests coming from the web */</span></span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">HandleFileRequest</span><span class="params">(FHttpRequestPtr HttpRequest, FHttpResponsePtr HttpResponse, <span class="keyword">bool</span> bSucceeded)</span></span>;</span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">HandleFileRequestProgress</span><span class="params">(FHttpRequestPtr HttpRequest, int32 BytesSent, int32 BytesReceived)</span></span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"AsyncTaskDownloadFile.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"Modules/ModuleManager.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"Interfaces/IHttpResponse.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"HttpModule.h"</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//----------------------------------------------------------------------//</span></span><br><span class="line"><span class="comment">// UAsyncTaskDownloadFile</span></span><br><span class="line"><span class="comment">//----------------------------------------------------------------------//</span></span><br><span class="line"></span><br><span class="line">UAsyncTaskDownloadFile::UAsyncTaskDownloadFile(<span class="keyword">const</span> FObjectInitializer&amp; ObjectInitializer)</span><br><span class="line">	: Super(ObjectInitializer)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span> (HasAnyFlags(RF_ClassDefaultObject) == <span class="literal">false</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		AddToRoot();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">UAsyncTaskDownloadFile* UAsyncTaskDownloadFile::DownloadFile(FString URL)</span><br><span class="line">&#123;</span><br><span class="line">	UAsyncTaskDownloadFile* DownloadTask = NewObject&lt;UAsyncTaskDownloadFile&gt;();</span><br><span class="line">	DownloadTask-&gt;Start(URL);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> DownloadTask;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> UAsyncTaskDownloadFile::Start(FString URL)</span><br><span class="line">&#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> !UE_SERVER</span></span><br><span class="line">	<span class="comment">// Create the Http request and add to pending request list</span></span><br><span class="line">	TSharedRef&lt;IHttpRequest&gt; HttpRequest = FHttpModule::Get().CreateRequest();</span><br><span class="line"></span><br><span class="line">	HttpRequest-&gt;OnProcessRequestComplete().BindUObject(<span class="keyword">this</span>, &amp;UAsyncTaskDownloadFile::HandleFileRequest);</span><br><span class="line">	HttpRequest-&gt;OnRequestProgress().BindUObject(<span class="keyword">this</span>, &amp;UAsyncTaskDownloadFile::HandleFileRequestProgress);</span><br><span class="line">	HttpRequest-&gt;SetURL(URL);</span><br><span class="line">	HttpRequest-&gt;SetVerb(TEXT(<span class="string">"GET"</span>));</span><br><span class="line">	HttpRequest-&gt;ProcessRequest();</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">	<span class="comment">// On the server we don't execute fail or success we just don't fire the request.</span></span><br><span class="line">	RemoveFromRoot();</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> UAsyncTaskDownloadFile::HandleFileRequest(FHttpRequestPtr HttpRequest, FHttpResponsePtr HttpResponse, <span class="keyword">bool</span> bSucceeded)</span><br><span class="line">&#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> !UE_SERVER</span></span><br><span class="line">	RemoveFromRoot();</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (bSucceeded &amp;&amp; HttpResponse.IsValid() &amp;&amp; HttpResponse-&gt;GetContentLength() &gt; <span class="number">0</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		OnUpdateProgress.Broadcast(HttpResponse-&gt;GetContentLength(), HttpResponse-&gt;GetContentLength(), HttpResponse-&gt;GetContent());</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	OnFail.Broadcast();</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> UAsyncTaskDownloadFile::HandleFileRequestProgress(FHttpRequestPtr HttpRequest, int32 BytesSent, int32 BytesReceived)</span><br><span class="line">&#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> !UE_SERVER</span></span><br><span class="line">	<span class="keyword">if</span> (HttpRequest-&gt;GetResponse()-&gt;GetContentLength() &gt; <span class="number">0</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		TArray&lt;uint8&gt; EmptyData;</span><br><span class="line">		OnUpdateProgress.Broadcast(BytesReceived, HttpRequest-&gt;GetResponse()-&gt;GetContentLength(), EmptyData);</span><br><span class="line">	&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>先贴代码，然后描述下需要注意的地方：</p>
+<ul>
+<li>正如前面所说的，节点只会识别第一个Delegate成员的signature。所以我本来想把Progress和Success分开，但是发现虽然确实能够响应Progress的调用，但是无法传递进度值，因此将它们合并成一个委派了。</li>
+<li>声明Delegate时，Dynamic对于TArray必须使用引用传递，否则虽然能够编译通过但是蓝图节点无法通过编译，委派中对于复杂类还是尽量使用引用传递的signature把。</li>
+</ul>
+<h4 id="简单的demo"><a href="#简单的demo" class="headerlink" title="简单的demo"></a>简单的demo</h4><p><a href="https://github.com/ArcEcho/TestBlueprintAsycTask" target="_blank" rel="noopener">github地址</a><br>代码在之前的DownloadImage的基础上实现了以Http方式下载文件，在下载的同时以进度条展现进度。这里把下载的文件当作文本文件，最后打印出来。<br><img src="/2017/10/12/蓝图异步节点初探-UBlueprintUBlueprint/demo.png" alt="demo"></p>
+<h4 id="仍然存在的问题"><a href="#仍然存在的问题" class="headerlink" title="仍然存在的问题"></a>仍然存在的问题</h4><ul>
+<li>由于合并了完成和进度更新所以，完成判断会触发两次。</li>
+</ul>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/UE4/" rel="tag"># UE4</a>
+          
+            <a href="/tags/UE4-C/" rel="tag"># UE4 C++</a>
+          
+            <a href="/tags/Blueprint/" rel="tag"># Blueprint</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/09/18/Slate进阶应用之两个相当有用的工具和一个示例合集/" rel="next" title="Slate进阶应用之两个相当有用的工具和一个示例合集">
+                <i class="fa fa-chevron-left"></i> Slate进阶应用之两个相当有用的工具和一个示例合集
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/11/01/简单的UE4工程帮助插件-VS2017/" rel="prev" title="简单的UE4工程帮助插件(VS2017)">
+                简单的UE4工程帮助插件(VS2017) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Inhaltsverzeichnis
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Übersicht
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">ArcEcho</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">Artikel</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-name">Kategorien</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
+                    <span class="site-state-item-name">schlagwörter</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#阅读本文最好了解以下知识"><span class="nav-number">1.</span> <span class="nav-text">阅读本文最好了解以下知识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自带的异步节点DownloadImage"><span class="nav-number">2.</span> <span class="nav-text">自带的异步节点DownloadImage</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#节点分析"><span class="nav-number">2.1.</span> <span class="nav-text">节点分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#对应代码分析"><span class="nav-number">2.2.</span> <span class="nav-text">对应代码分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#模仿实现http文件下载的异步节点"><span class="nav-number">3.</span> <span class="nav-text">模仿实现http文件下载的异步节点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#简单的demo"><span class="nav-number">3.1.</span> <span class="nav-text">简单的demo</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#仍然存在的问题"><span class="nav-number">3.2.</span> <span class="nav-text">仍然存在的问题</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ArcEcho</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">Erstellt mit  <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Design – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

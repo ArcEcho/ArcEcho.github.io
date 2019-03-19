@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh_CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="UE4.18版本中终于把新的布料系统实装了，试用了下发现非常强大且简单使用。用下面官方的图解释就是大大简化了Cloth workflow。实际上就是集成了编辑布料的功能到编辑器中，这样就不用在编辑器和建模工具间的来回倒弄了。">
+<meta name="keywords" content="UE4.18,Clothing">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UE4.18新布料系统试用">
+<meta property="og:url" content="http://yoursite.com/2017/12/09/UE4-18新布料系统试用/index.html">
+<meta property="og:site_name" content="每天进补一点点！">
+<meta property="og:description" content="UE4.18版本中终于把新的布料系统实装了，试用了下发现非常强大且简单使用。用下面官方的图解释就是大大简化了Cloth workflow。实际上就是集成了编辑布料的功能到编辑器中，这样就不用在编辑器和建模工具间的来回倒弄了。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2017/12/09/UE4-18新布料系统试用/workflow_change.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/09/UE4-18新布料系统试用/cloth_mesh.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/09/UE4-18新布料系统试用/add_bone.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/09/UE4-18新布料系统试用/create_clothing_data.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/09/UE4-18新布料系统试用/paint_weight.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/09/UE4-18新布料系统试用/final.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/09/UE4-18新布料系统试用/target_mixamo_character.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/09/UE4-18新布料系统试用/to_blender.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/09/UE4-18新布料系统试用/split_into_sections.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/09/UE4-18新布料系统试用/final_character.gif">
+<meta property="og:updated_time" content="2019-03-08T04:14:28.807Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="UE4.18新布料系统试用">
+<meta name="twitter:description" content="UE4.18版本中终于把新的布料系统实装了，试用了下发现非常强大且简单使用。用下面官方的图解释就是大大简化了Cloth workflow。实际上就是集成了编辑布料的功能到编辑器中，这样就不用在编辑器和建模工具间的来回倒弄了。">
+<meta name="twitter:image" content="http://yoursite.com/2017/12/09/UE4-18新布料系统试用/workflow_change.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/12/09/UE4-18新布料系统试用/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>UE4.18新布料系统试用 | 每天进补一点点！</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh_CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">每天进补一点点！</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Navigationsleiste an/ausschalten">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Startseite</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archiv</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/09/UE4-18新布料系统试用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ArcEcho">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进补一点点！">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">UE4.18新布料系统试用
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+
+              
+                
+              
+
+              <time title="Erstellt: 2017-12-09 20:21:50" itemprop="dateCreated datePublished" datetime="2017-12-09T20:21:50+08:00">2017-12-09</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Bearbeitet am</span>
+                
+                <time title="Geändert am: 2019-03-08 12:14:28" itemprop="dateModified" datetime="2019-03-08T12:14:28+08:00">2019-03-08</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">in</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tech/" itemprop="url" rel="index"><span itemprop="name">Tech</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>UE4.18版本中终于把新的布料系统实装了，试用了下发现非常强大且简单使用。用下面官方的图解释就是大大简化了Cloth workflow。<br><img src="/2017/12/09/UE4-18新布料系统试用/workflow_change.png" alt><br>实际上就是集成了编辑布料的功能到编辑器中，这样就不用在编辑器和建模工具间的来回倒弄了。<br><a id="more"></a></p>
+<h3 id="最简单的布料例子"><a href="#最简单的布料例子" class="headerlink" title="最简单的布料例子"></a>最简单的布料例子</h3><p>先从简单的来，从最简单的布料开始。<br>我这里使用blender创建一个plane网格。网格越精细，等会绘制网格时可控制的节点就越多。<br><img src="/2017/12/09/UE4-18新布料系统试用/cloth_mesh.png" alt></p>
+<p>然后加上一根骨骼，这里注意加骨骼是为了导入时识别为skeletal mesh，clothing系统是在skeleton editor下操作的。<br><img src="/2017/12/09/UE4-18新布料系统试用/add_bone.png" alt></p>
+<p>然后在skeletal mesh editor中点击工具栏的section select工具，选择我们设置布料的区域。 然后右键选择从section创建布料数据。<br><img src="/2017/12/09/UE4-18新布料系统试用/create_clothing_data.png" alt></p>
+<p>然后点击工具栏启用布料绘制工具就会出现布料绘制的属性栏。这里可以选择布料的各种属性，以及画刷的类型和属性。如图简单绘制了下，白色就是表示我们要应用布料的网格部分。<br><img src="/2017/12/09/UE4-18新布料系统试用/paint_weight.png" alt></p>
+<p>最后关闭布料绘制工具就可以预览布料效果了。<br><img src="/2017/12/09/UE4-18新布料系统试用/final.png" alt></p>
+<h3 id="针对mixamo的模型应用布料"><a href="#针对mixamo的模型应用布料" class="headerlink" title="针对mixamo的模型应用布料"></a>针对mixamo的模型应用布料</h3><p>下面我们尝试给character模型配上布料。这里我们选择mixamo上的kachujin_g_rosales角色。<br><img src="/2017/12/09/UE4-18新布料系统试用/target_mixamo_character.png" alt></p>
+<p>但是值得注意的是该模型只有一个section，因此我们最好是处理下把我们要的布料部分拆出来。<br><img src="/2017/12/09/UE4-18新布料系统试用/to_blender.png" alt></p>
+<p>如图我把裙摆、围巾等拆成了单独的section。<br><img src="/2017/12/09/UE4-18新布料系统试用/split_into_sections.png" alt></p>
+<p>然后我们导入到UE4中按照之前的步骤设置布料动画，便有了以下结果。<br><img src="/2017/12/09/UE4-18新布料系统试用/final_character.gif" alt></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/UE4-18/" rel="tag"># UE4.18</a>
+          
+            <a href="/tags/Clothing/" rel="tag"># Clothing</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/11/15/如何修改UE4游戏窗口样式/" rel="next" title="如何修改UE4游戏窗口样式">
+                <i class="fa fa-chevron-left"></i> 如何修改UE4游戏窗口样式
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/02/01/使用Motion-Builder替代UE4的Animation-Retargeting/" rel="prev" title="使用Motion Builder替代UE4的Animation Retargeting">
+                使用Motion Builder替代UE4的Animation Retargeting <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Inhaltsverzeichnis
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Übersicht
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">ArcEcho</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">Artikel</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-name">Kategorien</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
+                    <span class="site-state-item-name">schlagwörter</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#最简单的布料例子"><span class="nav-number">1.</span> <span class="nav-text">最简单的布料例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#针对mixamo的模型应用布料"><span class="nav-number">2.</span> <span class="nav-text">针对mixamo的模型应用布料</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ArcEcho</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">Erstellt mit  <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Design – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

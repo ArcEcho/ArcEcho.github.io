@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh_CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="近来研究了下UE4中Pak文件的工作流程，并对UE4中的文件系统了解了下。这个过程中，我发现现有的资料讲的比较乱，且有的版本很老。遂在此按照自己理解来简单阐述下UE4中和Pak文件相关的各种知识，如果有什么错误或者不明白的地方请在下方留言或者发送Email：zmy_qwerty@163.com。">
+<meta name="keywords" content="UE4">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UE4 Pak 相关知识总结">
+<meta property="og:url" content="http://yoursite.com/2017/07/02/UE4-Pak-相关知识总结/index.html">
+<meta property="og:site_name" content="每天进补一点点！">
+<meta property="og:description" content="近来研究了下UE4中Pak文件的工作流程，并对UE4中的文件系统了解了下。这个过程中，我发现现有的资料讲的比较乱，且有的版本很老。遂在此按照自己理解来简单阐述下UE4中和Pak文件相关的各种知识，如果有什么错误或者不明白的地方请在下方留言或者发送Email：zmy_qwerty@163.com。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2017/07/02/UE4-Pak-相关知识总结/2017-07-02-14-24-35.png">
+<meta property="og:updated_time" content="2019-03-08T04:14:28.827Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="UE4 Pak 相关知识总结">
+<meta name="twitter:description" content="近来研究了下UE4中Pak文件的工作流程，并对UE4中的文件系统了解了下。这个过程中，我发现现有的资料讲的比较乱，且有的版本很老。遂在此按照自己理解来简单阐述下UE4中和Pak文件相关的各种知识，如果有什么错误或者不明白的地方请在下方留言或者发送Email：zmy_qwerty@163.com。">
+<meta name="twitter:image" content="http://yoursite.com/2017/07/02/UE4-Pak-相关知识总结/2017-07-02-14-24-35.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/07/02/UE4-Pak-相关知识总结/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>UE4 Pak 相关知识总结 | 每天进补一点点！</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh_CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">每天进补一点点！</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Navigationsleiste an/ausschalten">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Startseite</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archiv</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/07/02/UE4-Pak-相关知识总结/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ArcEcho">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进补一点点！">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">UE4 Pak 相关知识总结
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+
+              
+                
+              
+
+              <time title="Erstellt: 2017-07-02 08:30:42" itemprop="dateCreated datePublished" datetime="2017-07-02T08:30:42+08:00">2017-07-02</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Bearbeitet am</span>
+                
+                <time title="Geändert am: 2019-03-08 12:14:28" itemprop="dateModified" datetime="2019-03-08T12:14:28+08:00">2019-03-08</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">in</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tech/" itemprop="url" rel="index"><span itemprop="name">Tech</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>近来研究了下UE4中Pak文件的工作流程，并对UE4中的文件系统了解了下。这个过程中，我发现现有的资料讲的比较乱，且有的版本很老。遂在此按照自己理解来简单阐述下UE4中和Pak文件相关的各种知识，如果有什么错误或者不明白的地方请在下方留言或者发送Email：<a href="mailto:zmy_qwerty@163.com" target="_blank" rel="noopener">zmy_qwerty@163.com</a>。<br><a id="more"></a></p>
+<h3 id="需要知道的核心概念"><a href="#需要知道的核心概念" class="headerlink" title="需要知道的核心概念"></a>需要知道的核心概念</h3><p>这里根据自己的理解把使用Pak时需要的核心概念提炼出来了。</p>
+<h4 id="印证了《Gmae-Engine-Architechture》中的一些设计"><a href="#印证了《Gmae-Engine-Architechture》中的一些设计" class="headerlink" title="印证了《Gmae Engine Architechture》中的一些设计"></a>印证了《Gmae Engine Architechture》中的一些设计</h4><p>之前看那本书的感触不是特别深，感觉太理论化。在研究UE4的时候，发现UE4实际上的很多设计就是那本书的一些印证。<br>UE4和绝大多数游戏引擎一样使用了文件系统即资源管理器的方式管理的文件和游戏资源，比如PlatformFile就是可以认为其平台独立层的File system，而使用的Package管理的方式就是对应其资源管理器的概念。<br>后面记《GEA》为《Gmae Engine Architechture》。</p>
+<h5 id="File-System"><a href="#File-System" class="headerlink" title="File System"></a>File System</h5><p>书中列举的主要用途如下:</p>
+<ul>
+<li>操作文件名及路径</li>
+<li>对单独的文件进行读写等常规的文件操作</li>
+<li>扫描文件目录下内容</li>
+<li>处理异步的文件I/O请求</li>
+</ul>
+<p>除了主要用途，文件系统还要可能需要满足资源Packaging，Patching等功能。<br>我所了解比较好的文件系统例子是<a href="http://wow.gamepedia.com/Content_Addressable_Storage_Container" target="_blank" rel="noopener">暴雪的CASC</a>,我们玩的WOW的更新及修复什么的，都是依靠它实现的。</p>
+<h4 id="UE4中的对应的一些概念"><a href="#UE4中的对应的一些概念" class="headerlink" title="UE4中的对应的一些概念"></a>UE4中的对应的一些概念</h4><h5 id="File"><a href="#File" class="headerlink" title="File"></a>File</h5><p>File在UE4中的概念，实际上和我们使用操作系统时的是基本一致的，用来记录数据信息。</p>
+<h5 id="Asset-Package"><a href="#Asset-Package" class="headerlink" title="Asset Package"></a>Asset Package</h5><p>实际上UE4中没有Asset Package这个名词，只有Package，为了区别于Packaging Project的package，这里先声明这样的记法。Asset Package，就是指的在UE4中能够在直接使用的游戏资源，比如material，map，blueprint等，每一个独立的资源的对应一个Package概念。</p>
+<ul>
+<li>一个Asset Package可能包含多个File，比如cooked之后的usset实际上可能会分离出.uexp .ubulk等文件。</li>
+<li>多个Asset Package可以称作一个Pack，比如Add Feature Pack就是提供了一系列Asset Packages。</li>
+<li>Asset Package和UOject关系很紧密，直接Load的Asset Package就是一个UObject对象。</li>
+<li>FPackageName就是我们通常在Load Asset时使用的路径形式。更为具体点就是FStringAssetReference。但是注意FStringAssetReference不是一个字串，不要被名字迷惑。</li>
+</ul>
+<h5 id="PlatformFile"><a href="#PlatformFile" class="headerlink" title="PlatformFile"></a>PlatformFile</h5><p>UE4中使用使用IPlatformFile来抽象出平台无关的文件操作的接口，对应《GEA》中架构的平台独立层中的文件系统。 相对Asset Reference方式来说这是一个低层文件访问的对象。它提供了基本的文件Read，Write，Delete等等操作。比较接近std::fstream的一些操作。针对支持的各个平台都会从IPlatformFile派生出相应的具体实现的类，比如WidowsPlatformFile。除了平台相关的的派生类以外，还有IPlatformFilePak，IPlatformFileModule等，这里只介绍IPlatformFilePak。和上面FPackageName相对应的是FPaths用来处理一些PlatformFile下的文件路径的操作。</p>
+<h5 id="Pak-PlatformFile"><a href="#Pak-PlatformFile" class="headerlink" title="Pak PlatformFile"></a>Pak PlatformFile</h5><p>用以管理Pak相关操作的PlatformFile类。提供了使用.pak文件的最为核心的两个操作Mount及Unmount。</p>
+<h4 id="引擎提供的相关操作"><a href="#引擎提供的相关操作" class="headerlink" title="引擎提供的相关操作"></a>引擎提供的相关操作</h4><ul>
+<li><a href="https://docs.unrealengine.com/latest/INT/Engine/Deployment/Cooking/" target="_blank" rel="noopener">Content Cooking</a></li>
+<li><a href="https://docs.unrealengine.com/latest/INT/Engine/Basics/Projects/Packaging/index.html" target="_blank" rel="noopener">Packaging Project</a></li>
+</ul>
+<h4 id="需要注意的问题"><a href="#需要注意的问题" class="headerlink" title="需要注意的问题"></a>需要注意的问题</h4><p>下面是我在学习的时候，总结的一些知识以及容易混淆的概念。</p>
+<h5 id="在PIE模式下使用Pak文件的意义不大"><a href="#在PIE模式下使用Pak文件的意义不大" class="headerlink" title="在PIE模式下使用Pak文件的意义不大"></a>在PIE模式下使用Pak文件的意义不大</h5><p>我最开始的时候按照自己的理解，认为既然是虚拟文件系统，那么只要我正确挂载路径，那么就可以正常的访问文件数据了。按照样的说法在PIE模式下，这也应该是可行的，那么这样子我在测试Pak相关功能时是不是可以不用那么麻烦的每次都需要Pakcaging Project了呢？虽然这个问题的前半段确实可行，但是后半段的问题仍然无法避免。</p>
+<ul>
+<li>虽然能够挂载pak文件，并能够加载其中的Asset Package，但是只能是未被Cooked的才可以正常使用，同理Packaging之后的Project也无法使用没有Cooked的Asset Package。</li>
+</ul>
+<h5 id="区分Mount和Load的区别"><a href="#区分Mount和Load的区别" class="headerlink" title="区分Mount和Load的区别"></a>区分Mount和Load的区别</h5><p>Mount翻译为挂载，而Load一般被翻译为加载。Mount只是告诉了文件系统有哪些文件可以从当前挂载的Pak文件中读到，即提供了虚拟的路径来访问Pak文件包含的文件，而Load一般就是指把文件的内容加载到内存中了，当然加载一个Package不是说的这么简单的流程。另外我看很多示例上可能是没有理解这边文件系统的原理，会在挂载之后直接写一些加载的代码，并没有在此时去使用加载之后的数据。<em>挂载pak文件之后就可以通过常规的方式来访问其中的文件了，并不需要特意的去做一次加载操作，且和使用或不使用异步加载方式没有直接的关系</em></p>
+<h5 id="注意PlatformFile是一个链状结构"><a href="#注意PlatformFile是一个链状结构" class="headerlink" title="注意PlatformFile是一个链状结构"></a>注意PlatformFile是一个链状结构</h5><p>如果阅读IPlaformFile相关的代码就会发现IPlatformFile实际上是一个链状的结构。在其Intialize的时候，会要求传一个IPlatformFile的指针，这个将会作为其inner lower PlatformFile存在，在通过一个PlatformFile尝试访问文件目录时，可以通过这个链自顶向下访问每个节点上所挂载的文件。</p>
+<ul>
+<li>可以这样理解，每个节点都有包含一部分文件信息，整个链上节点的信息综合起来，就是你能够访问的所有文件信息。值得注意的是，这种方式是允许节点间信息冗余的。如果冗余会访问第一个找到的数据。</li>
+<li>既然是一个链状结构，UE4提供了FPlatformFileManager来方便set/get topmost PlatformFile。</li>
+</ul>
+<h5 id="注意一个PakPlatformFile上可以挂载多个Pak文件"><a href="#注意一个PakPlatformFile上可以挂载多个Pak文件" class="headerlink" title="注意一个PakPlatformFile上可以挂载多个Pak文件"></a>注意一个PakPlatformFile上可以挂载多个Pak文件</h5><p>网上大多数挂载pak的示例中，都是直接创建新的PakPlatformFile，然后把PlatformFileManager取到的当前的topmost PlatformFile作为其inner lower PlatformFile，然后将这个PakPlatformFile指定为topmost。实际上如果没有特殊要求的话，没有必要去增长这个链，会造成内存的浪费。一个PakPlatformFile可以挂载多个Pak文件，其内部有一个记录FPakFile的List。</p>
+<h5 id="注意使用PackageName和Path的区别"><a href="#注意使用PackageName和Path的区别" class="headerlink" title="注意使用PackageName和Path的区别"></a>注意使用PackageName和Path的区别</h5><p>一般来说，Path就是接近我们在操作系统中读取文件时的那种路径。而PackageName提供的字串形式，实际上是一种简写的方式。</p>
+<ul>
+<li>FPackageName提供了RegsterMountPoint和UnRegisterMountPoint函数，这个函数的作用实际上就是提供了一种重定向的方式，即你在使用”/Game/xxxx.xxxx”的PackageName时，资源管理器会翻译成文件系统所能识别的Path。注意提过一个Asset Package可能对应多个文件，这个过程可能不是简单的字符串转换。另外还需要注意的是，PIE模式下你使用这个函数的时候，会抛出事件让Content Browser去扫描改动，如果你的注册的文件是在GameDir下的话，会反映到编辑器的Content Browser中。一般来说，这个函数没必要特意去调用，如果你mount的路径在GameContentDir下的话是可以直接使用”/Game/“开头的那种方式来加载Asset Package的。</li>
+</ul>
+<h5 id="pak文件中可以存放非Asset-Package文件类型"><a href="#pak文件中可以存放非Asset-Package文件类型" class="headerlink" title="pak文件中可以存放非Asset Package文件类型"></a>pak文件中可以存放非Asset Package文件类型</h5><p>这里的意思是在使用UnrealPak.exe可以放入类似.txt的文件，挂载后可以通过PlatformFile来访问其中的文件内容。</p>
+<h5 id="Pak文件大小要求"><a href="#Pak文件大小要求" class="headerlink" title="Pak文件大小要求"></a>Pak文件大小要求</h5><p><del>前面的文章基本上描述了pak文件的使用的基本流程，但是UE4中处理这些流程的复杂程度远不止所提到的这些。比如pak文件在使用的时候还涉及到资源缓存的问题，对应代码中的USE_PAK_CACHE。这个功能，限定了pak文件的最小size。目前4.16.2版本中这个大小被设置为64KB（PAK_CACHE_GURANLULARITY），也就是如果你的pak文件小于64KB，将无法被预缓存。这一点我通过补足pak文件大小和修改源码中的PAK_CACHE_GURANLULARITY数值两个方式进行了验证，结果都符合预期。</del><br>UE4.17.1版本中已经把这个问题修正了。</p>
+<blockquote>
+<p>Fixed async loading from pak files &lt; 64k.</p>
+</blockquote>
+<h5 id="制作pak文件的一个小技巧"><a href="#制作pak文件的一个小技巧" class="headerlink" title="制作pak文件的一个小技巧"></a>制作pak文件的一个小技巧</h5><p>UE4提供了命令行工具来生成pak文件，我们只需要编写一些脚本，就可以方便按照自己的需求来生成相应的pak文件。这里说的小技巧可以让你把某个路径下的制作成pak文件时保留你想要的部分路径。具体的脚本代码如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># This function accepts a short package filepath with out extension.</span></span><br><span class="line"><span class="comment"># And when generating pak file, it will add a dummy file to the reponse file list,</span></span><br><span class="line"><span class="comment"># in this way, the relative path to expected package root path will be saved in pak file.</span></span><br><span class="line"><span class="comment"># For example:</span></span><br><span class="line"><span class="comment"># If the input parameters targetPackagePathRootDir="F:\\AAA\\BBB\\" assetPackage="F:\\AAA\\BBB\\CCC\\*.*",</span></span><br><span class="line"><span class="comment"># then in the output pak file, the file's saved path will start with "\\CCC\\"</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">GenerateSplitedPaks</span><span class="params">(outputPakFileDir, targetPackagePathRootDir, assetPackage)</span>:</span></span><br><span class="line">    pakCmdTemplate = <span class="string">'"&#123;&#125;" "&#123;&#125;" &#123;&#125; "&#123;&#125;"'</span></span><br><span class="line">    urealPakToolPath = GetUnrealPakToolPath()</span><br><span class="line"></span><br><span class="line">    outputPakFileDir = os.path.normpath(outputPakFileDir)</span><br><span class="line">    targetPackagePathRootDir = os.path.normpath(targetPackagePathRootDir)</span><br><span class="line">    </span><br><span class="line">    filesToWrite = <span class="string">""</span></span><br><span class="line">    <span class="keyword">for</span> associatedFile <span class="keyword">in</span> assetPackage.associatedFiles:</span><br><span class="line">        filesToWrite += <span class="string">' "&#123;&#125;"'</span>.format(associatedFile)  </span><br><span class="line">    </span><br><span class="line">    <span class="comment">#Use hash</span></span><br><span class="line">    pakFilename = str(hash(assetPackage.name))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># _, pakFilename = os.path.split(assetPackage.name)</span></span><br><span class="line">    </span><br><span class="line">    outputPakFilePath = os.path.join(outputPakFileDir, pakFilename + <span class="string">".pak"</span>)</span><br><span class="line">    dummyPackagePath = os.path.join(targetPackagePathRootDir, <span class="string">"dummy.uasset"</span>)</span><br><span class="line"></span><br><span class="line">    pakCmd = pakCmdTemplate.format(urealPakToolPath, outputPakFilePath, filesToWrite, dummyPackagePath)</span><br><span class="line"></span><br><span class="line">    subprocess.call(pakCmd, shell=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure></p>
+<p>简单来说就是以你想要相对的路径下加一个不存在的文件，上面代码中是dummy.uasset。然后作为命令行输入的时候，工具提示找不到那个文件且不会加入那个文件。但是这个时候，你要保留的路径就留下来了。可能讲的不是很直观，你可以自己尝试几次不同的组合就知道了。</p>
+<p><em>注意这里是简单的技巧示例，真正使用的时候请参照编辑器中的传详细的参数来进行脚本的编写。因为生成pak文件的时候，还需要需要指定合适的patchpaddingalign等数据。详细可以参看工程的ProjectUitls下的python脚本的代码。</em></p>
+<h5 id="挂载前后的路径问题"><a href="#挂载前后的路径问题" class="headerlink" title="挂载前后的路径问题"></a>挂载前后的路径问题</h5><p>这个问题非常重要，我也将其放在最后来说。但其实挂载前后的路径确定出乎意料的简单，就是要保证你在制作那些资源时的目录结构和你挂载后的目录结构完全一致，这样就能保证其中资源依赖没有问题。给个简单的例子说明：<br><img src="/2017/07/02/UE4-Pak-相关知识总结/2017-07-02-14-24-35.png" alt><br>图中ToPak路径下的Package我都需要放入到Pak文件中，使用UnrealPak工具，以ToPak为Root生成Pak文件。然后使用此pak文件时，只需要把pak文件在挂载在FPaths::GameContentDir()下，就可以正常使用，包括依赖关系。</p>
+<ul>
+<li>同一个文件夹目录下的的文件可以分散在不同的Pak文件中，对同一个路径mount不同的Pak文件就可以还原之前的目录结构。</li>
+<li>同时需要注意的是实际挂载时并不一定需要去指定mount point，但这个的前提是你生成pak文件的时候在response file中已经指定好了各文件的redirection path。这一点是通过阅读程序如何使用自身的paks文件下的pak文件得知的，我做了多次验证后确实如此。且不按照此种方式使用时，静态光源的构建数据可能会出现错误的带状显示效果。</li>
+</ul>
+<h4 id="核心的代码示例"><a href="#核心的代码示例" class="headerlink" title="核心的代码示例"></a>核心的代码示例</h4><p>工程托管在GitHub上：<a href="https://github.com/ArcEcho/TestPak" target="_blank" rel="noopener">TestPak</a>, 我只把使用Pak文件最核心的一些代码提炼出来了，并给予一些示例。</p>
+<h4 id="目前尚未解决的问题"><a href="#目前尚未解决的问题" class="headerlink" title="目前尚未解决的问题"></a>目前尚未解决的问题</h4><ul>
+<li>当前我测试通过的的版本是4.15.1和4.16.2，在正确生成pak文件后（正确是指使用unrealPak工具时，相关的命令行参数需要恰当），基本上能够正常运行。如果使用最简单的方式的话可能静态光源的builddata使用错误，出现带状的错误显示效果。然后就是在4.15.3版本下cook之后，只有uasset文件，而缺少uexp等文件，暂时不知道为什么，此种情况下使用时也会出现前面的错误。这个需要等我后面弄明白了再补充。</li>
+</ul>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/UE4/" rel="tag"># UE4</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/28/使用C-11实现简单的multicast-delegate Ver0.1/" rel="next" title="使用C++11实现简单的delegate v0.1">
+                <i class="fa fa-chevron-left"></i> 使用C++11实现简单的delegate v0.1
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/28/UE4工程调试简易小结/" rel="prev" title="UE4工程调试简易小结">
+                UE4工程调试简易小结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Inhaltsverzeichnis
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Übersicht
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">ArcEcho</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">Artikel</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-name">Kategorien</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
+                    <span class="site-state-item-name">schlagwörter</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#需要知道的核心概念"><span class="nav-number">1.</span> <span class="nav-text">需要知道的核心概念</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#印证了《Gmae-Engine-Architechture》中的一些设计"><span class="nav-number">1.1.</span> <span class="nav-text">印证了《Gmae Engine Architechture》中的一些设计</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#File-System"><span class="nav-number">1.1.1.</span> <span class="nav-text">File System</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#UE4中的对应的一些概念"><span class="nav-number">1.2.</span> <span class="nav-text">UE4中的对应的一些概念</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#File"><span class="nav-number">1.2.1.</span> <span class="nav-text">File</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Asset-Package"><span class="nav-number">1.2.2.</span> <span class="nav-text">Asset Package</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#PlatformFile"><span class="nav-number">1.2.3.</span> <span class="nav-text">PlatformFile</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Pak-PlatformFile"><span class="nav-number">1.2.4.</span> <span class="nav-text">Pak PlatformFile</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#引擎提供的相关操作"><span class="nav-number">1.3.</span> <span class="nav-text">引擎提供的相关操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#需要注意的问题"><span class="nav-number">1.4.</span> <span class="nav-text">需要注意的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#在PIE模式下使用Pak文件的意义不大"><span class="nav-number">1.4.1.</span> <span class="nav-text">在PIE模式下使用Pak文件的意义不大</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#区分Mount和Load的区别"><span class="nav-number">1.4.2.</span> <span class="nav-text">区分Mount和Load的区别</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#注意PlatformFile是一个链状结构"><span class="nav-number">1.4.3.</span> <span class="nav-text">注意PlatformFile是一个链状结构</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#注意一个PakPlatformFile上可以挂载多个Pak文件"><span class="nav-number">1.4.4.</span> <span class="nav-text">注意一个PakPlatformFile上可以挂载多个Pak文件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#注意使用PackageName和Path的区别"><span class="nav-number">1.4.5.</span> <span class="nav-text">注意使用PackageName和Path的区别</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#pak文件中可以存放非Asset-Package文件类型"><span class="nav-number">1.4.6.</span> <span class="nav-text">pak文件中可以存放非Asset Package文件类型</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Pak文件大小要求"><span class="nav-number">1.4.7.</span> <span class="nav-text">Pak文件大小要求</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#制作pak文件的一个小技巧"><span class="nav-number">1.4.8.</span> <span class="nav-text">制作pak文件的一个小技巧</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#挂载前后的路径问题"><span class="nav-number">1.4.9.</span> <span class="nav-text">挂载前后的路径问题</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#核心的代码示例"><span class="nav-number">1.5.</span> <span class="nav-text">核心的代码示例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#目前尚未解决的问题"><span class="nav-number">1.6.</span> <span class="nav-text">目前尚未解决的问题</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ArcEcho</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">Erstellt mit  <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Design – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

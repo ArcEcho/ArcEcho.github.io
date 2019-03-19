@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh_CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="在进入游戏时或者加载地图时我们通常会使用LoadingScreen来防止用户看到加载过程。在UE中如何使用呢？">
+<meta name="keywords" content="UE4,C++,UE4.15.x">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在UE中使用LoadingScreen">
+<meta property="og:url" content="http://yoursite.com/2017/04/20/在UE中使用LoadingScreen/index.html">
+<meta property="og:site_name" content="每天进补一点点！">
+<meta property="og:description" content="在进入游戏时或者加载地图时我们通常会使用LoadingScreen来防止用户看到加载过程。在UE中如何使用呢？">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:updated_time" content="2019-03-08T04:14:28.857Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="在UE中使用LoadingScreen">
+<meta name="twitter:description" content="在进入游戏时或者加载地图时我们通常会使用LoadingScreen来防止用户看到加载过程。在UE中如何使用呢？">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/04/20/在UE中使用LoadingScreen/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>在UE中使用LoadingScreen | 每天进补一点点！</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh_CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">每天进补一点点！</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Navigationsleiste an/ausschalten">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Startseite</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archiv</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/04/20/在UE中使用LoadingScreen/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ArcEcho">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进补一点点！">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">在UE中使用LoadingScreen
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+
+              
+                
+              
+
+              <time title="Erstellt: 2017-04-20 18:35:06" itemprop="dateCreated datePublished" datetime="2017-04-20T18:35:06+08:00">2017-04-20</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Bearbeitet am</span>
+                
+                <time title="Geändert am: 2019-03-08 12:14:28" itemprop="dateModified" datetime="2019-03-08T12:14:28+08:00">2019-03-08</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">in</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tech/" itemprop="url" rel="index"><span itemprop="name">Tech</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在进入游戏时或者加载地图时我们通常会使用LoadingScreen来防止用户看到加载过程。在UE中如何使用呢？</p>
+<a id="more"></a>
+<h3 id="播放游戏起始的动画"><a href="#播放游戏起始的动画" class="headerlink" title="播放游戏起始的动画"></a>播放游戏起始的动画</h3><p>UE4自己提供了播放游戏起始动画的入口，只需要在Project Setting-&gt;Movies设置中添加我们需要播放的视频即可。</p>
+<blockquote>
+<p>注意似乎比较旧的引擎版本下，对播放的影片的尺寸及帧率什么的都是有需求的。但是在4.15.1版本下好像是没有问题的。</p>
+</blockquote>
+<h3 id="加载界面的实现"><a href="#加载界面的实现" class="headerlink" title="加载界面的实现"></a>加载界面的实现</h3><p>网上大多数教程都是蓝图的，且官方也是推荐使用streaming level的方式来加载地图，在这样的情形下来实现部分加载界面是可以很简单的完成的。但是这么做是有局限性的：</p>
+<ul>
+<li>如果无法避免地图过大的情况，则使用streamin level是不现实的。这种情况下需要使用<code>SetClientTravel</code>的方式来加载地图了，也就是调用<code>UGameplayStatics</code>(即蓝图里面的函数)的<code>OpenLevel</code>方式。这种方式下，加载地图的时候，引擎的主线程是被占用的，也就是说此时的UMG什么的是无法使用的。</li>
+<li>启动游戏时如果要显示加载界面而不是播放片头动画的话，蓝图也是无法实现的。因为在直到蓝图支持的模块启动完毕之前这段时间，蓝图是无法使用的，故也就不能显示加载界面了。</li>
+</ul>
+<h3 id="用C-实现加载动画"><a href="#用C-实现加载动画" class="headerlink" title="用C++实现加载动画"></a>用C++实现加载动画</h3><p>从上面的分析可以看出来，有些东西还是必须要用C++来实现的。我们可以利用UE4提供的<code>MoviePlayer</code>来帮助我们完成我们要用的功能，而用C++实现主要有三个思路。</p>
+<h4 id="在GameInstance中hook-PreLoadMap来实现"><a href="#在GameInstance中hook-PreLoadMap来实现" class="headerlink" title="在GameInstance中hook PreLoadMap来实现"></a>在GameInstance中hook PreLoadMap来实现</h4><p>Wiki中有一篇关于<a href="https://wiki.unrealengine.com/Loading_Screen" target="_blank" rel="noopener">LoadingScreen实现的文章</a>。主要实现方式是在GameInstance初始化的时候，将我们的事件处理函数绑定在<code>PreLoadMap</code>委派上。在该处理函数中使用<code>FLoadingScreenAttributes</code>来显示我们的加载界面。代码如下：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//MyGameInstance.h</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Init</span><span class="params">()</span> override</span>;</span><br><span class="line"> </span><br><span class="line">	UFUNCTION()</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">BeginLoadingScreen</span><span class="params">(<span class="keyword">const</span> FString&amp; MapName)</span></span>;</span><br><span class="line">	UFUNCTION()</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">EndLoadingScreen</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//MyGameInstance.cpp</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">void</span> UMyGameInstance::Init()</span><br><span class="line">&#123;</span><br><span class="line">	UGameInstance::Init();</span><br><span class="line"> </span><br><span class="line">	FCoreUObjectDelegates::PreLoadMap.AddUObject(<span class="keyword">this</span>, &amp;UMyGameInstance::BeginLoadingScreen);</span><br><span class="line">	FCoreUObjectDelegates::PostLoadMap.AddUObject(<span class="keyword">this</span>, &amp;UMyGameInstance::EndLoadingScreen);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">void</span> UMyGameInstance::BeginLoadingScreen(<span class="keyword">const</span> FString&amp; MapName)</span><br><span class="line">&#123;</span><br><span class="line">        <span class="keyword">if</span> (!IsRunningDedicatedServer())</span><br><span class="line">	&#123;</span><br><span class="line"> 		FLoadingScreenAttributes LoadingScreen;</span><br><span class="line">	 	LoadingScreen.bAutoCompleteWhenLoadingCompletes = <span class="literal">false</span>;</span><br><span class="line"> 		LoadingScreen.WidgetLoadingScreen = FLoadingScreenAttributes::NewTestLoadingScreenWidget();</span><br><span class="line"> </span><br><span class="line">	 	GetMoviePlayer()-&gt;SetupLoadingScreen(LoadingScreen);</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">void</span> UMyGameInstance::EndLoadingScreen()</span><br><span class="line">&#123;</span><br><span class="line"> </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意<code>LoadingScreen.WidgetLoadingScreen = LoadingScreenAttributes::NewTestLoadingScreenWidget();</code> 这句代码我们可以使用我们自己的SWidget来作为加载界面,类似如下代码:<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LoadingScreen.WidgetLoadingScreen =  SNew(SMyLoadingScreen);</span><br></pre></td></tr></table></figure></p>
+<h4 id="参照Showcase（PlatformerGame或者ShooterGame）的实现。"><a href="#参照Showcase（PlatformerGame或者ShooterGame）的实现。" class="headerlink" title="参照Showcase（PlatformerGame或者ShooterGame）的实现。"></a>参照Showcase（PlatformerGame或者ShooterGame）的实现。</h4><p>ShowCase中将LoadingScreen抽成了一个单独的模块来使用。使用时注意，我们需要在<code>.uproject</code>(UE4工程文件)中正确的定义其加载阶段，如下(JSON格式的文件)：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	&quot;FileVersion&quot;: 3,</span><br><span class="line">	&quot;EngineAssociation&quot;: &quot;4.15&quot;,</span><br><span class="line">	&quot;Category&quot;: &quot;&quot;,</span><br><span class="line">	&quot;Description&quot;: &quot;&quot;,</span><br><span class="line">	&quot;Modules&quot;: [</span><br><span class="line">		&#123;</span><br><span class="line">			&quot;Name&quot;: &quot;TestLoadingScreen&quot;,</span><br><span class="line">			&quot;Type&quot;: &quot;Runtime&quot;,</span><br><span class="line">			&quot;LoadingPhase&quot;: &quot;Default&quot;,</span><br><span class="line">			&quot;AdditionalDependencies&quot;: [</span><br><span class="line">				&quot;Engine&quot;</span><br><span class="line">			]</span><br><span class="line">		&#125;,</span><br><span class="line">		&#123;</span><br><span class="line">			&quot;Name&quot;: &quot;MyLoadingScreen&quot;,</span><br><span class="line">			&quot;Type&quot;: &quot;Runtime&quot;,</span><br><span class="line">			&quot;LoadingPhase&quot;: &quot;PreLoadingScreen&quot;,</span><br><span class="line">			&quot;AdditionalDependencies&quot;: [</span><br><span class="line">				&quot;Engine&quot;</span><br><span class="line">			]</span><br><span class="line">		&#125;</span><br><span class="line">	]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><strong>这里需要设置其LodaingPhase为PreLoadingScreen</strong>,这样才能在第一次进游戏的时候显示我们的加载画面。这里插一下LoadingPhase有哪些：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">namespace</span> ELoadingPhase</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">enum</span> Type</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">/** Loaded before the engine is fully initialized, immediately after the config system has been initialized.  Necessary only for very low-level hooks */</span></span><br><span class="line">		PostConfigInit,</span><br><span class="line"></span><br><span class="line">		<span class="comment">/** Loaded before the engine is fully initialized for modules that need to hook into the loading screen before it triggers */</span></span><br><span class="line">		PreLoadingScreen,</span><br><span class="line"></span><br><span class="line">		<span class="comment">/** Right before the default phase */</span></span><br><span class="line">		PreDefault,</span><br><span class="line"></span><br><span class="line">		<span class="comment">/** Loaded at the default loading point during startup (during engine init, after game modules are loaded.) */</span></span><br><span class="line">		Default,</span><br><span class="line"></span><br><span class="line">		<span class="comment">/** Right after the default phase */</span></span><br><span class="line">		PostDefault,</span><br><span class="line"></span><br><span class="line">		<span class="comment">/** After the engine has been initialized */</span></span><br><span class="line">		PostEngineInit,</span><br><span class="line"></span><br><span class="line">		<span class="comment">/** Do not automatically load this module */</span></span><br><span class="line">		None,</span><br><span class="line"></span><br><span class="line">		<span class="comment">// <span class="doctag">NOTE:</span> If you add a new value, make sure to update the ToString() method below!</span></span><br><span class="line">		Max</span><br><span class="line">	&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的代码可以很清楚的看到只有在这个阶段加载我们的模块才能正常的使用。</p>
+<p>模块里面具体实现加载界面的部分是在<code>StartModule</code>的时候直接使用<code>FLoadingScreenAttributes</code>创建并显示加载界面。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">FPlatformerGameLoadingScreenModule</span> :</span> <span class="keyword">public</span> IPlatformerGameLoadingScreenModule</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">StartupModule</span><span class="params">()</span> override</span></span><br><span class="line"><span class="function">	</span>&#123;		</span><br><span class="line">		<span class="comment">// Load for cooker reference</span></span><br><span class="line">		LoadObject&lt;UObject&gt;(<span class="literal">NULL</span>, TEXT(<span class="string">"/Game/UI/Menu/LoadingScreen.LoadingScreen"</span>) ); </span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (IsMoviePlayerEnabled())</span><br><span class="line">		&#123;</span><br><span class="line">			CreateLoadingScreen();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="title">IsGameModule</span><span class="params">()</span> <span class="keyword">const</span> override</span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">StartInGameLoadingScreen</span><span class="params">()</span> override</span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		CreateLoadingScreen();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">CreateLoadingScreen</span><span class="params">()</span></span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		FLoadingScreenAttributes LoadingScreen;</span><br><span class="line">		LoadingScreen.bAutoCompleteWhenLoadingCompletes = <span class="literal">true</span>;</span><br><span class="line">		LoadingScreen.WidgetLoadingScreen = SNew(SPlatformerLoadingScreen);</span><br><span class="line">		GetMoviePlayer()-&gt;SetupLoadingScreen(LoadingScreen);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>但是经过我的实验，它这种实现方式必须要和其内置的<code>GameMenuBuilder</code>来配合使用，在代码中直接调用<code>CreateLoadingScreen</code>似乎没有办法显示加载界面（由于我对UE4还是不是很了解，暂时还不知道原因），虽然相应的SWidget的Construct函数都被调用了。</p>
+</blockquote>
+<h4 id="使用UE官方代码库中的LoadingScreen插件"><a href="#使用UE官方代码库中的LoadingScreen插件" class="headerlink" title="使用UE官方代码库中的LoadingScreen插件"></a>使用UE官方代码库中的LoadingScreen插件</h4><p><a href="https://github.com/ue4plugins/LoadingScreen" target="_blank" rel="noopener">代码库位置</a><br>插件基本上是前两种实现方式的结合。其实现的核心部分是给<code>MoviePlayer</code>的<code>OnPrepareLoadingScreen</code>委派上添加自己的处理函数。这个实际上是和第一种方式是一致的（该委派实际上就放在PreLoadMap的处理函数进行BroadCast）。然后插件本身就是一个模块，这是第二种方式更加高级的用法了。</p>
+<blockquote>
+<p>使用该插件的时候需要注意：</p>
+<ul>
+<li>我当前使用的版本是4.15.1<strong>（4/20/207）</strong>而作者代码库中的版本已经改为了4.16的写法所以这里需要做一些改动 。具体见这个<a href="https://github.com/ue4plugins/LoadingScreen/issues/15" target="_blank" rel="noopener">issue</a>。</li>
+</ul>
+</blockquote>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>上面三种方式各有优缺点，第一种十分直接，具有非常高的可定制性。而最后一种可以非常方便迁移到别的工程来使用，但是缺点是由于是插件不好扩展。而中间那种方式，如果不需要复杂的界面设计的话可以使用下，这个均分了前两种的优缺点，但是注意我上面提到的局限性。<br><strong>最后强调版本UE4.15.1，且在尝试展示加载界面的时候请使用StandAlone模式来运行游戏。</strong></p>
+<blockquote>
+<p>相关讨论的帖子:<br><a href="https://forums.unrealengine.com/showthread.php?114999-Nick-Darnell-Loading-Screen-Plugin-GREAT!-But-I-have-some-questions&amp;styleid=7#post556047" target="_blank" rel="noopener">Nick Darnell Loading Screen Plugin - GREAT! But I have some questions</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/UE4/" rel="tag"># UE4</a>
+          
+            <a href="/tags/C/" rel="tag"># C++</a>
+          
+            <a href="/tags/UE4-15-x/" rel="tag"># UE4.15.x</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/" rel="next" title="在UMG中使用帧动画(C++&Slate&UMG)">
+                <i class="fa fa-chevron-left"></i> 在UMG中使用帧动画(C++&Slate&UMG)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/04/28/使用UE4制作简单的局域网对战小游戏/" rel="prev" title="使用UE4制作简单的局域网对战小游戏">
+                使用UE4制作简单的局域网对战小游戏 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Inhaltsverzeichnis
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Übersicht
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">ArcEcho</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">Artikel</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-name">Kategorien</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
+                    <span class="site-state-item-name">schlagwörter</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#播放游戏起始的动画"><span class="nav-number">1.</span> <span class="nav-text">播放游戏起始的动画</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#加载界面的实现"><span class="nav-number">2.</span> <span class="nav-text">加载界面的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用C-实现加载动画"><span class="nav-number">3.</span> <span class="nav-text">用C++实现加载动画</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#在GameInstance中hook-PreLoadMap来实现"><span class="nav-number">3.1.</span> <span class="nav-text">在GameInstance中hook PreLoadMap来实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#参照Showcase（PlatformerGame或者ShooterGame）的实现。"><span class="nav-number">3.2.</span> <span class="nav-text">参照Showcase（PlatformerGame或者ShooterGame）的实现。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用UE官方代码库中的LoadingScreen插件"><span class="nav-number">3.3.</span> <span class="nav-text">使用UE官方代码库中的LoadingScreen插件</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ArcEcho</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">Erstellt mit  <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Design – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

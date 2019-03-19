@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh_CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="之前工作中做了一些关于slate方面的应用，需要抽时间来总结下。这里讲的是Slate中可以用来绘制的工具类FSlateDrawElement，它可以用来绘制诸如线段、矩形等图元，也可以用来绘制图片文字等。然后这里有个">
+<meta name="keywords" content="UE4,Slate">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Slate进阶应用之FSlateDrawElement">
+<meta property="og:url" content="http://yoursite.com/2017/09/18/Slate进阶应用之FSlateDrawElement/index.html">
+<meta property="og:site_name" content="每天进补一点点！">
+<meta property="og:description" content="之前工作中做了一些关于slate方面的应用，需要抽时间来总结下。这里讲的是Slate中可以用来绘制的工具类FSlateDrawElement，它可以用来绘制诸如线段、矩形等图元，也可以用来绘制图片文字等。然后这里有个">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2017/09/18/Slate进阶应用之FSlateDrawElement/PaintDemo.gif">
+<meta property="og:updated_time" content="2019-03-08T04:14:28.777Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Slate进阶应用之FSlateDrawElement">
+<meta name="twitter:description" content="之前工作中做了一些关于slate方面的应用，需要抽时间来总结下。这里讲的是Slate中可以用来绘制的工具类FSlateDrawElement，它可以用来绘制诸如线段、矩形等图元，也可以用来绘制图片文字等。然后这里有个">
+<meta name="twitter:image" content="http://yoursite.com/2017/09/18/Slate进阶应用之FSlateDrawElement/PaintDemo.gif">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/09/18/Slate进阶应用之FSlateDrawElement/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Slate进阶应用之FSlateDrawElement | 每天进补一点点！</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh_CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">每天进补一点点！</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Navigationsleiste an/ausschalten">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Startseite</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archiv</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/09/18/Slate进阶应用之FSlateDrawElement/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ArcEcho">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进补一点点！">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Slate进阶应用之FSlateDrawElement
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+
+              
+                
+              
+
+              <time title="Erstellt: 2017-09-18 15:36:51" itemprop="dateCreated datePublished" datetime="2017-09-18T15:36:51+08:00">2017-09-18</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Bearbeitet am</span>
+                
+                <time title="Geändert am: 2019-03-08 12:14:28" itemprop="dateModified" datetime="2019-03-08T12:14:28+08:00">2019-03-08</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">in</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tech/" itemprop="url" rel="index"><span itemprop="name">Tech</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>之前工作中做了一些关于slate方面的应用，需要抽时间来总结下。这里讲的是Slate中可以用来绘制的工具类FSlateDrawElement，它可以用来绘制诸如线段、矩形等图元，也可以用来绘制图片文字等。<br>然后这里有个</p>
+<a id="more"></a>
+<h3 id="寻找FSlateDrawElement的动机和思路"><a href="#寻找FSlateDrawElement的动机和思路" class="headerlink" title="寻找FSlateDrawElement的动机和思路"></a>寻找FSlateDrawElement的动机和思路</h3><p>项目工作中需要能够绘制线条等较为低级的API来完成，但是UMG层的Painting中只提供了较为简单的4种绘制方法：DrawBox、DrawLine、DrawLines、DrawText，无法处理一些复杂的图形，如各种多边形。因此亟需寻找功能更丰富的的API。最开始找的时候直接发现Viewport相关的FCanvas中有各种画线等功能的方法，属于#D类型的。但是这个对应的是蓝图中的DrawDebug系列的方法，并且项目功能主要是UI层面的，不想升维到3D空间增加问题复杂度，所以希望有一个2D UI层面的解决方案。然后观察到蓝图编辑界面的连线，标准的样条线模式，那么这个在UE4中是如何实现的呢？带着这个疑问，我尝试在VS中加断点，最终找到了接近我需要的这个类了（起初并不知道UMG层提供的DrawLine之类的函数，如果知道就会节约很多用于寻找时间）。</p>
+<h3 id="FSlateDrawElement简介"><a href="#FSlateDrawElement简介" class="headerlink" title="FSlateDrawElement简介"></a>FSlateDrawElement简介</h3><p>FSlateDrawElement位于<code>Engine\Source\Runtime\SlateCore\Public\DrawElements.h</code>文件中。位置表明分类，分类决定可用范围，该类属于SlateCore，也就是说可以用于Game中，也可以用在Editor Plugin中，更可以用于使用SlateCore的独立Programs中。所以还是很有用的类。</p>
+<h4 id="FSlateDrawElement支持的图元类型"><a href="#FSlateDrawElement支持的图元类型" class="headerlink" title="FSlateDrawElement支持的图元类型"></a>FSlateDrawElement支持的图元类型</h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">   <span class="keyword">enum</span> EElementType</span><br><span class="line">&#123;</span><br><span class="line">	ET_Box,</span><br><span class="line">	ET_DebugQuad,</span><br><span class="line">	ET_Text,</span><br><span class="line">	ET_ShapedText,</span><br><span class="line">	ET_Spline,</span><br><span class="line">	ET_Line,</span><br><span class="line">	ET_Gradient,</span><br><span class="line">	ET_Viewport,</span><br><span class="line">	ET_Border,</span><br><span class="line">	ET_Custom,</span><br><span class="line">	ET_CustomVerts,</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * Used for Invalidation, these buffers represent a complete cached buffer of what we normally send to the GPU to be</span></span><br><span class="line"><span class="comment">	 * drawn for a series of widgets.  They're used to reduce draw overhead in situations where the UI is largely static.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	ET_CachedBuffer,</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * These layers are different from "layerId", they're symbolic layers, used when building up cached geometry.  They allow</span></span><br><span class="line"><span class="comment">	 * Slate to semantically differentiate between Layer A and Layer B, which may have completely different layerIds, which perhaps</span></span><br><span class="line"><span class="comment">	 * overlap, but because they are in logically separate layers they won't intersect, the contents of Layer B would always</span></span><br><span class="line"><span class="comment">	 * come after the contents of Layer A.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	ET_Layer,</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	ET_PostProcessPass,</span><br><span class="line">	<span class="comment">/** Total number of draw commands */</span></span><br><span class="line">	ET_Count,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>上面的代码摘自源码，基本上是它所支持的所有图元类型。对于2D层面的绘制来说Box、Line、Spline、Gradien、Text基本够用了，不过这里注意这里多了两个很强大的类型，Custom和CustomVerts，比如后者就可以用来绘制多边形(可填充)了。</p>
+<h4 id="创建FSlateDrawElment元素"><a href="#创建FSlateDrawElment元素" class="headerlink" title="创建FSlateDrawElment元素"></a>创建FSlateDrawElment元素</h4><p>这里以Line类型举例:<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Line path</span></span><br><span class="line">TArray&lt;FVector&gt; LinePoints;</span><br><span class="line">LinePoints.Add(FVector::ZeroVector());</span><br><span class="line">LinePoints.Add(FVector(<span class="number">100.0f</span>, <span class="number">100.0f</span>));</span><br><span class="line"></span><br><span class="line">FLinearColor LineColor = FLinearColor::Red;</span><br><span class="line"><span class="keyword">float</span> LineThickness = <span class="number">3.0f</span>;</span><br><span class="line"><span class="keyword">bool</span> bUseAntialias = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">FSlateDrawElement::MakeLines(</span><br><span class="line">    OutDrawElements,</span><br><span class="line">    LayerId,</span><br><span class="line">    AllottedGeometry.ToPaintGeometry(),</span><br><span class="line">    LinePoints,</span><br><span class="line">    ESlateDrawEffect::None,</span><br><span class="line">    LineColor,</span><br><span class="line">    bUseAntialias,</span><br><span class="line">    LineThickness</span><br><span class="line">);</span><br></pre></td></tr></table></figure></p>
+<p>虽然上面只添加了两个点，但是实际上LinePoint可以理解成是一个Path，也就是说折线可以是用这种方式来表示，非填充的多边形也可以用这样的方式。在我的文末的贴的<a href="https://github.com/ArcEcho/PaintDemo" target="_blank" rel="noopener">github上一个简单Demo</a>中我就是基本只是用了这个类型实现了如下的一个钟的绘制：<br><img src="/2017/09/18/Slate进阶应用之FSlateDrawElement/PaintDemo.gif" alt="PaintDemo"><br>这里圆形的轮廓就是一系列的线段组成的，类似“割圆术”的操作，我割了360次就看起来比较圆了。另外这个方式有几个需要注意的地方：</p>
+<ul>
+<li>若要来表示封闭的多边形你需要，Path的最后一个元素等于第一个元素就好了。</li>
+<li>不连续的线需要另外创建Line元素，如图中刻度线就是单独的LineElement。</li>
+<li>在4.17版本以前，可能是某个UE4程序员手误，把线宽代码生效的代码注释掉了并赋值为1.0f，你需要修改引擎源码才能看到线宽效果。并且线宽数值过大时，折线转折处会出线奇怪的表现。</li>
+</ul>
+<h4 id="使用FSlateDrawElment元素"><a href="#使用FSlateDrawElment元素" class="headerlink" title="使用FSlateDrawElment元素"></a>使用FSlateDrawElment元素</h4><p>使用FSlateDrawElement位置比较固定，上面的MakeLines是在SWidget::OnPaint中调用的，各个子类可以自己Override父类的该方法。该函数的函数签名及注释如下：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">   <span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Creates a line defined by the provided points</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * @param ElementList			   The list in which to add elements</span></span><br><span class="line"><span class="comment"> * @param InLayer                  The layer to draw the element on</span></span><br><span class="line"><span class="comment"> * @param PaintGeometry            DrawSpace position and dimensions; see FPaintGeometry</span></span><br><span class="line"><span class="comment"> * @param Points                   Points that make up the lines.  The points are joined together. I.E if Points has A,B,C there the line is A-B-C.  To draw non-joining line segments call MakeLines multiple times</span></span><br><span class="line"><span class="comment"> * @param InClippingRect           Parts of the element are clipped if it falls outside of this rectangle</span></span><br><span class="line"><span class="comment"> * @param InDrawEffects            Optional draw effects to apply</span></span><br><span class="line"><span class="comment"> * @param InTint                   Color to tint the element</span></span><br><span class="line"><span class="comment"> * @param bAntialias               Should antialiasing be applied to the line?</span></span><br><span class="line"><span class="comment"> * @param Thickness                The thickness of the line</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function">SLATECORE_API <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">MakeLines</span><span class="params">( </span></span></span><br><span class="line"><span class="function"><span class="params">       FSlateWindowElementList&amp; ElementList, </span></span></span><br><span class="line"><span class="function"><span class="params">       uint32 InLayer, </span></span></span><br><span class="line"><span class="function"><span class="params">       <span class="keyword">const</span> FPaintGeometry&amp; PaintGeometry,</span></span></span><br><span class="line"><span class="function"><span class="params">       <span class="keyword">const</span> TArray&lt;FVector2D&gt;&amp; Points, </span></span></span><br><span class="line"><span class="function"><span class="params">       ESlateDrawEffect InDrawEffects = ESlateDrawEffect::None,</span></span></span><br><span class="line"><span class="function"><span class="params">       <span class="keyword">const</span> FLinearColor&amp; InTint=FLinearColor::White,</span></span></span><br><span class="line"><span class="function"><span class="params">       <span class="keyword">bool</span> bAntialias = <span class="literal">true</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">       <span class="keyword">float</span> Thickness = <span class="number">1.0f</span></span></span></span><br><span class="line"><span class="function"><span class="params">   )</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p>我们在调用Make系列的方法后就相当于设置了一个要绘制的元素。<br>更多的示例使用范例可以参看源码定义以及<code>Engine\Source\Runtime\AppFramework\Public\Widgets\Testing\STestSuite.h</code>中的示例代码。</p>
+<h4 id="FSlateDrawElment工作流程"><a href="#FSlateDrawElment工作流程" class="headerlink" title="FSlateDrawElment工作流程"></a>FSlateDrawElment工作流程</h4><p>上面说到调用Make系列的方法后会设置了一个要绘制的元素，注意这个时候并不是立马就绘制元素了。Slate需要做一系列的处理才会绘制我们要的元素，比如重排、剔除等。我们创建元素会被一个叫做<code>ElementBatcher</code>的类处理，它会根据我们的元素类型，去生成更细节的用以绘制的数据。然后再交给SlateRHIRender去绘制出来。这里只是简单的说了下流程，如果更细致请读者自行阅读代码，一般来说只是使用API的话可以不用过于深入。</p>
+<h4 id="FSlateDrawElment-CustomVerts的介绍"><a href="#FSlateDrawElment-CustomVerts的介绍" class="headerlink" title="FSlateDrawElment::CustomVerts的介绍"></a>FSlateDrawElment::CustomVerts的介绍</h4><p>FSlateDrawElment::CustomVert是我项目功能中主要使用的方法，通过这个方法我们可以绘制纯色或自定义UV贴图的多边形。之所以能自定UV是因为这里是基于三角面片的数据定义方式，详细可以看如下从STestSuite中摘出来的代码片段：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">int32 <span class="title">TestCustomVerts</span><span class="params">(<span class="keyword">const</span> FOnPaintHandlerParams&amp; InParams)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">float</span> Radius = FMath::Min(InParams.Geometry.GetLocalSize().X, InParams.Geometry.GetLocalSize().Y) * <span class="number">0.5f</span>;</span><br><span class="line">    <span class="keyword">const</span> FVector2D Center = InParams.Geometry.AbsolutePosition + InParams.Geometry.GetLocalSize() * <span class="number">0.5f</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> FSlateBrush* MyBrush = FCoreStyle::Get().GetBrush(<span class="string">"ColorWheel.HueValueCircle"</span>);</span><br><span class="line">    <span class="comment">// @todo this is not the correct way to do this</span></span><br><span class="line">    FSlateShaderResourceProxy* ResourceProxy = FSlateDataPayload::ResourceManager-&gt;GetShaderResource(*MyBrush);</span><br><span class="line">    FSlateResourceHandle Handle = FSlateApplication::Get().GetRenderer()-&gt;GetResourceHandle( *MyBrush );</span><br><span class="line"></span><br><span class="line">    FVector2D UVCenter = FVector2D::ZeroVector;</span><br><span class="line">    FVector2D UVRadius = FVector2D(<span class="number">1</span>,<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span> (ResourceProxy != <span class="literal">nullptr</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        UVRadius = <span class="number">0.5f</span> * ResourceProxy-&gt;SizeUV;</span><br><span class="line">        UVCenter = ResourceProxy-&gt;StartUV + UVRadius;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Make a triangle fan in the area allotted</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> NumTris = <span class="number">12</span>;</span><br><span class="line">    TArray&lt;FSlateVertex&gt; Verts;</span><br><span class="line">    Verts.Reserve(NumTris*<span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Center Vertex</span></span><br><span class="line">    Verts.AddZeroed();</span><br><span class="line">    &#123;</span><br><span class="line">        FSlateVertex&amp; NewVert = Verts.Last();</span><br><span class="line">        NewVert.Position[<span class="number">0</span>] = Center.X;</span><br><span class="line">        NewVert.Position[<span class="number">1</span>] = Center.Y;</span><br><span class="line">        NewVert.TexCoords[<span class="number">0</span>] = UVCenter.X;</span><br><span class="line">        NewVert.TexCoords[<span class="number">1</span>] = UVCenter.Y;</span><br><span class="line">        NewVert.TexCoords[<span class="number">2</span>] = NewVert.TexCoords[<span class="number">3</span>] = <span class="number">1.0f</span>;</span><br><span class="line">        NewVert.Color = FColor::White;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; NumTris; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        Verts.AddZeroed();</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">const</span> <span class="keyword">float</span> Angle = (<span class="number">2</span>*PI*i) / NumTris;</span><br><span class="line">            <span class="function"><span class="keyword">const</span> FVector2D <span class="title">EdgeDirection</span><span class="params">(FMath::Cos(Angle), FMath::Sin(Angle))</span></span>;</span><br><span class="line">            <span class="function"><span class="keyword">const</span> FVector2D <span class="title">Edge</span><span class="params">(Radius*EdgeDirection)</span></span>;</span><br><span class="line">            FSlateVertex&amp; NewVert = Verts.Last();</span><br><span class="line">            NewVert.Position[<span class="number">0</span>] = Center.X + Edge.X;</span><br><span class="line">            NewVert.Position[<span class="number">1</span>] = Center.Y + Edge.Y;</span><br><span class="line">            NewVert.TexCoords[<span class="number">0</span>] = UVCenter.X + UVRadius.X*EdgeDirection.X;</span><br><span class="line">            NewVert.TexCoords[<span class="number">1</span>] = UVCenter.Y + UVRadius.Y*EdgeDirection.Y;</span><br><span class="line">            NewVert.TexCoords[<span class="number">2</span>] = NewVert.TexCoords[<span class="number">3</span>] = <span class="number">1.0f</span>;</span><br><span class="line">            NewVert.Color = FColor::White;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    TArray&lt;SlateIndex&gt; Indexes;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= NumTris; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        Indexes.Add(<span class="number">0</span>);</span><br><span class="line">        Indexes.Add(i);</span><br><span class="line">        Indexes.Add( (i+<span class="number">1</span> &gt; <span class="number">12</span>) ? (<span class="number">1</span>) : (i+<span class="number">1</span>) );</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    FSlateDrawElement::MakeCustomVerts(InParams.OutDrawElements, InParams.Layer, Handle, Verts, Indexes, <span class="literal">nullptr</span>, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> InParams.Layer;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>熟悉3D中图元的表示方法的话，理解这个方法应该很简单。<br>另外一个看起来类似的MakeCustom方法由于和渲染部分涉及太多，且源码中没有实例，故暂不管它。</p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>实际上FSlateDrawElement相对于各类2D绘制的API如GDI，html5的canvas来说，还是过于简单。不过好在有MakeCustomVerts的存在，我们可以定制相关的绘制方式。因此Slate总的来说还是很强大的。</p>
+<h3 id="文中提到的demo工程的链接"><a href="#文中提到的demo工程的链接" class="headerlink" title="文中提到的demo工程的链接"></a>文中提到的demo工程的链接</h3><p><a href="https://github.com/ArcEcho/PaintDemo" target="_blank" rel="noopener">PaintDemo</a></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/UE4/" rel="tag"># UE4</a>
+          
+            <a href="/tags/Slate/" rel="tag"># Slate</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/28/UE4工程调试简易小结/" rel="next" title="UE4工程调试简易小结">
+                <i class="fa fa-chevron-left"></i> UE4工程调试简易小结
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/09/18/Slate进阶应用之两个相当有用的工具和一个示例合集/" rel="prev" title="Slate进阶应用之两个相当有用的工具和一个示例合集">
+                Slate进阶应用之两个相当有用的工具和一个示例合集 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Inhaltsverzeichnis
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Übersicht
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">ArcEcho</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">Artikel</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-name">Kategorien</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
+                    <span class="site-state-item-name">schlagwörter</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#寻找FSlateDrawElement的动机和思路"><span class="nav-number">1.</span> <span class="nav-text">寻找FSlateDrawElement的动机和思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FSlateDrawElement简介"><span class="nav-number">2.</span> <span class="nav-text">FSlateDrawElement简介</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#FSlateDrawElement支持的图元类型"><span class="nav-number">2.1.</span> <span class="nav-text">FSlateDrawElement支持的图元类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#创建FSlateDrawElment元素"><span class="nav-number">2.2.</span> <span class="nav-text">创建FSlateDrawElment元素</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用FSlateDrawElment元素"><span class="nav-number">2.3.</span> <span class="nav-text">使用FSlateDrawElment元素</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FSlateDrawElment工作流程"><span class="nav-number">2.4.</span> <span class="nav-text">FSlateDrawElment工作流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FSlateDrawElment-CustomVerts的介绍"><span class="nav-number">2.5.</span> <span class="nav-text">FSlateDrawElment::CustomVerts的介绍</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文中提到的demo工程的链接"><span class="nav-number">4.</span> <span class="nav-text">文中提到的demo工程的链接</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ArcEcho</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">Erstellt mit  <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Design – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

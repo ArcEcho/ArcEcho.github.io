@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh_CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="项目中遇到了新需求，需要尝试把UI框架仿造成UE4 Editor那样，并想移植出Editor一部分功能到Game中来使用。首先先研究了下UE4启动部分并尝试先修改窗口样式。如下是最终效果图：">
+<meta name="keywords" content="UE4,UE4 C++">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何修改UE4游戏窗口样式">
+<meta property="og:url" content="http://yoursite.com/2017/11/15/如何修改UE4游戏窗口样式/index.html">
+<meta property="og:site_name" content="每天进补一点点！">
+<meta property="og:description" content="项目中遇到了新需求，需要尝试把UI框架仿造成UE4 Editor那样，并想移植出Editor一部分功能到Game中来使用。首先先研究了下UE4启动部分并尝试先修改窗口样式。如下是最终效果图：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2017/11/15/如何修改UE4游戏窗口样式/preview.png">
+<meta property="og:image" content="http://yoursite.com/2017/11/15/如何修改UE4游戏窗口样式/call_stack.png">
+<meta property="og:updated_time" content="2019-03-08T04:14:28.867Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="如何修改UE4游戏窗口样式">
+<meta name="twitter:description" content="项目中遇到了新需求，需要尝试把UI框架仿造成UE4 Editor那样，并想移植出Editor一部分功能到Game中来使用。首先先研究了下UE4启动部分并尝试先修改窗口样式。如下是最终效果图：">
+<meta name="twitter:image" content="http://yoursite.com/2017/11/15/如何修改UE4游戏窗口样式/preview.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/11/15/如何修改UE4游戏窗口样式/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>如何修改UE4游戏窗口样式 | 每天进补一点点！</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh_CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">每天进补一点点！</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Navigationsleiste an/ausschalten">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Startseite</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archiv</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/11/15/如何修改UE4游戏窗口样式/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ArcEcho">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进补一点点！">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">如何修改UE4游戏窗口样式
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+
+              
+                
+              
+
+              <time title="Erstellt: 2017-11-15 09:27:23" itemprop="dateCreated datePublished" datetime="2017-11-15T09:27:23+08:00">2017-11-15</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Bearbeitet am</span>
+                
+                <time title="Geändert am: 2019-03-08 12:14:28" itemprop="dateModified" datetime="2019-03-08T12:14:28+08:00">2019-03-08</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">in</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tech/" itemprop="url" rel="index"><span itemprop="name">Tech</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>项目中遇到了新需求，需要尝试把UI框架仿造成UE4 Editor那样，并想移植出Editor一部分功能到Game中来使用。首先先研究了下UE4启动部分并尝试先修改窗口样式。如下是最终效果图：<br><img src="/2017/11/15/如何修改UE4游戏窗口样式/preview.png" alt></p>
+<a id="more"></a>
+<h3 id="UE4在创建游戏窗口前这一段时间做了什么"><a href="#UE4在创建游戏窗口前这一段时间做了什么" class="headerlink" title="UE4在创建游戏窗口前这一段时间做了什么"></a>UE4在创建游戏窗口前这一段时间做了什么</h3><p>《游戏引擎架构》中有提到，游戏引擎运行大致分为这么几个阶段：InitGame和GameLoop，UE4也不例外。在Window版本下，我们可以在源码中搜索CreateWindowEx函数设置断点，从Call Stack来确定窗口创建前UE4做了些什么。<br><img src="/2017/11/15/如何修改UE4游戏窗口样式/call_stack.png" alt><br>如上图可知，UE4引擎的统一的函数入口点为GuardedMain，位于Launch.cpp。这个文件中展示的结构和之前说的一致，只不过多了一个EnginePreInit阶段。而这些阶段在UE4中被抽象成了EngineLoop，非常清晰的叙述了各个阶段做了些什么。值得注意的是，在EnginePreInit阶段Editor和Game的分别使用了各自不同的Engine类型：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ( GEngine == <span class="literal">nullptr</span> )</span><br><span class="line">&#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> WITH_EDITOR</span></span><br><span class="line">    <span class="keyword">if</span> ( GIsEditor )</span><br><span class="line">    &#123;</span><br><span class="line">        FString EditorEngineClassName;</span><br><span class="line">        GConfig-&gt;GetString(TEXT(<span class="string">"/Script/Engine.Engine"</span>), TEXT(<span class="string">"EditorEngine"</span>), EditorEngineClassName, GEngineIni);</span><br><span class="line">        UClass* EditorEngineClass = StaticLoadClass( UEditorEngine::StaticClass(), <span class="literal">nullptr</span>, *EditorEngineClassName);</span><br><span class="line">        <span class="keyword">if</span> (EditorEngineClass == <span class="literal">nullptr</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            UE_LOG(LogInit, Fatal, TEXT(<span class="string">"Failed to load Editor Engine class '%s'."</span>), *EditorEngineClassName);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        GEngine = GEditor = NewObject&lt;UEditorEngine&gt;(GetTransientPackage(), EditorEngineClass);</span><br><span class="line"></span><br><span class="line">        GEngine-&gt;ParseCommandline();</span><br><span class="line"></span><br><span class="line">        UE_LOG(LogInit, Log, TEXT(<span class="string">"Initializing Editor Engine..."</span>));</span><br><span class="line">        GEditor-&gt;InitEditor(<span class="keyword">this</span>);</span><br><span class="line">        UE_LOG(LogInit, Log, TEXT(<span class="string">"Initializing Editor Engine Completed"</span>));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">#endif</span><br><span class="line">    &#123;</span><br><span class="line">        FString GameEngineClassName;</span><br><span class="line">        GConfig-&gt;GetString(TEXT(<span class="string">"/Script/Engine.Engine"</span>), TEXT(<span class="string">"GameEngine"</span>), GameEngineClassName, GEngineIni);</span><br><span class="line"></span><br><span class="line">        UClass* EngineClass = StaticLoadClass( UEngine::StaticClass(), <span class="literal">nullptr</span>, *GameEngineClassName);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (EngineClass == <span class="literal">nullptr</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            UE_LOG(LogInit, Fatal, TEXT(<span class="string">"Failed to load Engine class '%s'."</span>), *GameEngineClassName);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// must do this here so that the engine object that we create on the next line receives the correct property values</span></span><br><span class="line">        GEngine = NewObject&lt;UEngine&gt;(GetTransientPackage(), EngineClass);</span><br><span class="line">        check(GEngine);</span><br><span class="line"></span><br><span class="line">        GEngine-&gt;ParseCommandline();</span><br><span class="line"></span><br><span class="line">        UE_LOG(LogInit, Log, TEXT(<span class="string">"Initializing Game Engine..."</span>));</span><br><span class="line">        GEngine-&gt;Init(<span class="keyword">this</span>);</span><br><span class="line">        UE_LOG(LogInit, Log, TEXT(<span class="string">"Initializing Game Engine Completed"</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>总的来说，在游戏窗口创建之前，通过PreInit做了命令行解析，加载相关模块等等。然后在GameEngine的Init中才开始创建我们所说的游戏窗口（这里说的游戏窗口实际上指的是带有GameViewport的窗口，单纯的窗口Splash界面和开场动画已经创建过了）。</p>
+<h3 id="修改窗口样式"><a href="#修改窗口样式" class="headerlink" title="修改窗口样式"></a>修改窗口样式</h3><p>通过上述的方式可以很快的找到我们的游戏窗口创建的代码。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">TSharedRef&lt;SWindow&gt; UGameEngine::CreateGameWindow()</span><br><span class="line">&#123;</span><br><span class="line">	int32 ResX = GSystemResolution.ResX;</span><br><span class="line">	int32 ResY = GSystemResolution.ResY;</span><br><span class="line">	EWindowMode::Type WindowMode = GSystemResolution.WindowMode;</span><br><span class="line"></span><br><span class="line">	ConditionallyOverrideSettings(ResX, ResY, WindowMode);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// If the current settings have been overridden, apply them back into the system</span></span><br><span class="line">	<span class="keyword">if</span> (ResX != GSystemResolution.ResX || ResY != GSystemResolution.ResY || WindowMode != GSystemResolution.WindowMode)</span><br><span class="line">	&#123;</span><br><span class="line">		FSystemResolution::RequestResolutionChange(ResX, ResY, WindowMode);</span><br><span class="line">		IConsoleManager::Get().CallAllConsoleVariableSinks();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">const</span> FText WindowTitleOverride = GetDefault&lt;UGeneralProjectSettings&gt;()-&gt;ProjectDisplayedTitle;</span><br><span class="line">	<span class="keyword">const</span> FText WindowTitleComponent = WindowTitleOverride.IsEmpty() ? NSLOCTEXT(<span class="string">"UnrealEd"</span>, <span class="string">"GameWindowTitle"</span>, <span class="string">"&#123;GameName&#125;"</span>) : WindowTitleOverride;</span><br><span class="line"></span><br><span class="line">	FText WindowDebugInfoComponent;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> !UE_BUILD_SHIPPING</span></span><br><span class="line">	<span class="keyword">const</span> FText WindowDebugInfoOverride = GetDefault&lt;UGeneralProjectSettings&gt;()-&gt;ProjectDebugTitleInfo;</span><br><span class="line">	WindowDebugInfoComponent = WindowDebugInfoOverride.IsEmpty() ? NSLOCTEXT(<span class="string">"UnrealEd"</span>, <span class="string">"GameWindowTitleDebugInfo"</span>, <span class="string">"(&#123;PlatformArchitecture&#125;-bit, &#123;RHIName&#125;)"</span>) : WindowDebugInfoOverride;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> PLATFORM_64BITS</span></span><br><span class="line">	<span class="comment">//These are invariant strings so they don't need to be localized</span></span><br><span class="line">	<span class="keyword">const</span> FText PlatformBits = FText::FromString( TEXT( <span class="string">"64"</span> ) );</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span>	<span class="comment">//PLATFORM_64BITS</span></span></span><br><span class="line">	<span class="keyword">const</span> FText PlatformBits = FText::FromString( TEXT( <span class="string">"32"</span> ) );</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span>	<span class="comment">//PLATFORM_64BITS</span></span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// Note: If these parameters are updated or renamed, please update the tooltip on the ProjectDisplayedTitle and ProjectDebugTitleInfo properties</span></span><br><span class="line">	FFormatNamedArguments Args;</span><br><span class="line">	Args.Add( TEXT(<span class="string">"GameName"</span>), FText::FromString( FApp::GetGameName() ) );</span><br><span class="line">	Args.Add( TEXT(<span class="string">"PlatformArchitecture"</span>), PlatformBits );</span><br><span class="line">	Args.Add( TEXT(<span class="string">"RHIName"</span>), FText::FromName( LegacyShaderPlatformToShaderFormat( GMaxRHIShaderPlatform ) ) );</span><br><span class="line"></span><br><span class="line">	<span class="keyword">const</span> FText WindowTitleVar = FText::Format(FText::FromString(TEXT(<span class="string">"&#123;0&#125; &#123;1&#125;"</span>)), WindowTitleComponent, WindowDebugInfoComponent);</span><br><span class="line">	<span class="keyword">const</span> FText WindowTitle = FText::Format(WindowTitleVar, Args);</span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">bool</span> bShouldPreserveAspectRatio = GetDefault&lt;UGeneralProjectSettings&gt;()-&gt;bShouldWindowPreserveAspectRatio;</span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">bool</span> bUseBorderlessWindow = GetDefault&lt;UGeneralProjectSettings&gt;()-&gt;bUseBorderlessWindow;</span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">bool</span> bAllowWindowResize = GetDefault&lt;UGeneralProjectSettings&gt;()-&gt;bAllowWindowResize;</span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">bool</span> bAllowClose = GetDefault&lt;UGeneralProjectSettings&gt;()-&gt;bAllowClose;</span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">bool</span> bAllowMaximize = GetDefault&lt;UGeneralProjectSettings&gt;()-&gt;bAllowMaximize;</span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">bool</span> bAllowMinimize = GetDefault&lt;UGeneralProjectSettings&gt;()-&gt;bAllowMinimize;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Allow optional winX/winY parameters to set initial window position</span></span><br><span class="line">	EAutoCenter AutoCenterType = EAutoCenter::PrimaryWorkArea;</span><br><span class="line">	int32 WinX=<span class="number">0</span>;</span><br><span class="line">	int32 WinY=<span class="number">0</span>;</span><br><span class="line">	<span class="keyword">if</span> (FParse::Value(FCommandLine::Get(), TEXT(<span class="string">"WinX="</span>), WinX) &amp;&amp; FParse::Value(FCommandLine::Get(), TEXT(<span class="string">"WinY="</span>), WinY))</span><br><span class="line">	&#123;</span><br><span class="line">		AutoCenterType = EAutoCenter::None;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Give the window the max width/height of either the requested resolution, or your available desktop resolution</span></span><br><span class="line">	<span class="comment">// We need to do this as we request some 4K windows when rendering sequences, and the OS may try and clamp that</span></span><br><span class="line">	<span class="comment">// window to your available desktop resolution</span></span><br><span class="line">	TOptional&lt;<span class="keyword">float</span>&gt; MaxWindowWidth;</span><br><span class="line">	TOptional&lt;<span class="keyword">float</span>&gt; MaxWindowHeight;</span><br><span class="line">	<span class="keyword">if</span> (WindowMode == EWindowMode::Windowed)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">// Get available desktop area</span></span><br><span class="line">		FDisplayMetrics DisplayMetrics;</span><br><span class="line">		<span class="keyword">if</span> (FSlateApplication::IsInitialized())</span><br><span class="line">		&#123;</span><br><span class="line">			FSlateApplication::Get().GetInitialDisplayMetrics(DisplayMetrics);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span></span><br><span class="line">		&#123;</span><br><span class="line">			FDisplayMetrics::GetDisplayMetrics(DisplayMetrics);</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		MaxWindowWidth = FMath::Max(DisplayMetrics.VirtualDisplayRect.Right - DisplayMetrics.VirtualDisplayRect.Left, ResX);</span><br><span class="line">		MaxWindowHeight = FMath::Max(DisplayMetrics.VirtualDisplayRect.Bottom - DisplayMetrics.VirtualDisplayRect.Top, ResY);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">static</span> FWindowStyle BorderlessStyle = FWindowStyle::GetDefault();</span><br><span class="line">	BorderlessStyle</span><br><span class="line">		.SetActiveTitleBrush(FSlateNoResource())</span><br><span class="line">		.SetInactiveTitleBrush(FSlateNoResource())</span><br><span class="line">		.SetFlashTitleBrush(FSlateNoResource())</span><br><span class="line">		.SetOutlineBrush(FSlateNoResource())</span><br><span class="line">		.SetBorderBrush(FSlateNoResource())</span><br><span class="line">		.SetBackgroundBrush(FSlateNoResource())</span><br><span class="line">		.SetChildBackgroundBrush(FSlateNoResource());</span><br><span class="line"></span><br><span class="line">	TSharedRef&lt;SWindow&gt; Window = SNew(SWindow)</span><br><span class="line">	.Type(EWindowType::GameWindow)</span><br><span class="line">	.Style(bUseBorderlessWindow ? &amp;BorderlessStyle : &amp;FCoreStyle::Get().GetWidgetStyle&lt;FWindowStyle&gt;(<span class="string">"Window"</span>))</span><br><span class="line">	.ClientSize(FVector2D(ResX, ResY))</span><br><span class="line">	.Title(WindowTitle)</span><br><span class="line">	.AutoCenter(AutoCenterType)</span><br><span class="line">	.ScreenPosition(FVector2D(WinX, WinY))</span><br><span class="line">	.MaxWidth(MaxWindowWidth)</span><br><span class="line">	.MaxHeight(MaxWindowHeight)</span><br><span class="line">	.FocusWhenFirstShown(<span class="literal">true</span>)</span><br><span class="line">	.SaneWindowPlacement(AutoCenterType == EAutoCenter::None)</span><br><span class="line">	<span class="comment">//.UseOSWindowBorder(!bUseBorderlessWindow)</span></span><br><span class="line">	.CreateTitleBar(!bUseBorderlessWindow)</span><br><span class="line">	.ShouldPreserveAspectRatio(bShouldPreserveAspectRatio)</span><br><span class="line">	.LayoutBorder(bUseBorderlessWindow ? FMargin(<span class="number">0</span>) : FMargin(<span class="number">5</span>, <span class="number">5</span>, <span class="number">5</span>, <span class="number">5</span>))</span><br><span class="line">	.SizingRule(bAllowWindowResize ? ESizingRule::UserSized : ESizingRule::FixedSize)</span><br><span class="line">	.HasCloseButton(bAllowClose)</span><br><span class="line">	.SupportsMinimize(bAllowMinimize)</span><br><span class="line">	.SupportsMaximize(bAllowMaximize);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">bool</span> bShowImmediately = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">	FSlateApplication::Get().AddWindow( Window, bShowImmediately );</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// Do not set fullscreen mode here, since it doesn't take </span></span><br><span class="line">	<span class="comment">// HMDDevice into account. The window mode will be set properly later</span></span><br><span class="line">	<span class="comment">// from SwitchGameWindowToUseGameViewport() method (see ResizeWindow call).</span></span><br><span class="line">	<span class="keyword">if</span> (WindowMode == EWindowMode::Fullscreen)</span><br><span class="line">	&#123;</span><br><span class="line">		Window-&gt;SetWindowMode(EWindowMode::WindowedFullscreen);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		Window-&gt;SetWindowMode(WindowMode);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	Window-&gt;ShowWindow();</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Tick now to force a redraw of the window and ensure correct fullscreen application</span></span><br><span class="line">	FSlateApplication::Get().Tick();</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> Window;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可以看出我们的游戏窗口本质上是一个Slate的SWindow，样式基本上都是由这里控制。如果要改变窗口样式的话，首先得是一个有边框的窗口，所以我们直接把<code>.UseOSWindowBorder(!bUseBorderlessWindow)</code>给注释掉便出现我们在开头图中展示的UE4默认窗口样式了。但是你以为这么就完了么？此时你会发现你的窗口内容是一片黑，并未出现游戏场景。如果使用RenderDod这样的工具可以看到，引擎会先绘制我们的游戏场景，然后再绘制Slate UI。它们会层叠在一起，因此看到一片漆黑。解决这个问题的关键在下面一段代码中的<code>RenderDirectlyToWindow</code>这个属性上，细讲下就是一个是Render To Texture之后然后作为Slate Brush绘制在Brush上，一个是直接输出到SwapChain中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">TSharedRef&lt;SViewport&gt; GameViewportWidgetRef = </span><br><span class="line">    SNew( SViewport )</span><br><span class="line">        // Render directly to the window backbuffer unless capturing a movie or getting screenshots</span><br><span class="line">        // @todo TEMP</span><br><span class="line">        .RenderDirectlyToWindow(false/*bRenderDirectlyToWindow*/)</span><br><span class="line">        //gamma handled by the scene renderer</span><br><span class="line">        .EnableGammaCorrection(false)</span><br><span class="line">        .EnableStereoRendering(bStereoAllowed)</span><br><span class="line">        [</span><br><span class="line">            GameLayerManagerRef</span><br><span class="line">        ];</span><br></pre></td></tr></table></figure>
+<p>就这样我们修改窗口样式的功能就完成了，实际操作的时候我们只需要把slate style中的资源替换成我们需要的资源就可以了。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/UE4/" rel="tag"># UE4</a>
+          
+            <a href="/tags/UE4-C/" rel="tag"># UE4 C++</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/" rel="next" title="尝试UE4.18与Visual Studio Code的组合">
+                <i class="fa fa-chevron-left"></i> 尝试UE4.18与Visual Studio Code的组合
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/09/UE4-18新布料系统试用/" rel="prev" title="UE4.18新布料系统试用">
+                UE4.18新布料系统试用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Inhaltsverzeichnis
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Übersicht
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">ArcEcho</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">Artikel</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-name">Kategorien</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
+                    <span class="site-state-item-name">schlagwörter</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#UE4在创建游戏窗口前这一段时间做了什么"><span class="nav-number">1.</span> <span class="nav-text">UE4在创建游戏窗口前这一段时间做了什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改窗口样式"><span class="nav-number">2.</span> <span class="nav-text">修改窗口样式</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ArcEcho</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">Erstellt mit  <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Design – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

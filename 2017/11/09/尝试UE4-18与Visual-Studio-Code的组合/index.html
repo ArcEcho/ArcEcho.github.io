@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh_CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="在UE4.18Release Note中提到了新版本对Visual Studio Code加入了支持，于是尝试了下。">
+<meta name="keywords" content="UE4,UE4.18,Visual Studio Code">
+<meta property="og:type" content="article">
+<meta property="og:title" content="尝试UE4.18与Visual Studio Code的组合">
+<meta property="og:url" content="http://yoursite.com/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/index.html">
+<meta property="og:site_name" content="每天进补一点点！">
+<meta property="og:description" content="在UE4.18Release Note中提到了新版本对Visual Studio Code加入了支持，于是尝试了下。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/preview.png">
+<meta property="og:image" content="http://yoursite.com/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/install_vs_build_tools.png">
+<meta property="og:image" content="http://yoursite.com/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/vsc_extension.png">
+<meta property="og:image" content="http://yoursite.com/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/UE_Setting.png">
+<meta property="og:image" content="http://yoursite.com/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/file_menu.png">
+<meta property="og:image" content="http://yoursite.com/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/VSC_Proeject.png">
+<meta property="og:image" content="http://yoursite.com/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/VSC_debug.png">
+<meta property="og:updated_time" content="2019-03-08T04:14:28.867Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="尝试UE4.18与Visual Studio Code的组合">
+<meta name="twitter:description" content="在UE4.18Release Note中提到了新版本对Visual Studio Code加入了支持，于是尝试了下。">
+<meta name="twitter:image" content="http://yoursite.com/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/preview.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>尝试UE4.18与Visual Studio Code的组合 | 每天进补一点点！</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh_CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">每天进补一点点！</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Navigationsleiste an/ausschalten">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Startseite</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archiv</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ArcEcho">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进补一点点！">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">尝试UE4.18与Visual Studio Code的组合
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+
+              
+                
+              
+
+              <time title="Erstellt: 2017-11-09 17:48:27" itemprop="dateCreated datePublished" datetime="2017-11-09T17:48:27+08:00">2017-11-09</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Bearbeitet am</span>
+                
+                <time title="Geändert am: 2019-03-08 12:14:28" itemprop="dateModified" datetime="2019-03-08T12:14:28+08:00">2019-03-08</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">in</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tech/" itemprop="url" rel="index"><span itemprop="name">Tech</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在UE4.18<a href="https://docs.unrealengine.com/latest/INT/Support/Builds/ReleaseNotes/4_18/index.html#new:visualstudiocodesupportedonwindows,macandlinux" target="_blank" rel="noopener">Release Note</a>中提到了新版本对Visual Studio Code加入了支持，于是尝试了下。<br><img src="/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/preview.png" alt></p>
+<a id="more"></a>
+<h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>通常我们都是用Visual Studio来编写UE4 C++工程的。使用VS作为代码编辑器，也可以用它来调试代码。但是实际上编译代码时，是使用UBT配合VS build tool的。因此，当Visual Studio Code把相应环境配置好了之后也是可以替代VS的。</p>
+<h3 id="下载所需的环境"><a href="#下载所需的环境" class="headerlink" title="下载所需的环境"></a>下载所需的环境</h3><ul>
+<li><a href="https://www.visualstudio.com/zh-hans/downloads/?rr=https%3A%2F%2Fhatenablog-parts.com%2Fembed%3Furl%3Dhttps%253A%252F%252Fwww.visualstudio.com%252Fja%252Fdownloads%252F#other-zh-hans" target="_blank" rel="noopener">Visual Studio 2017 Build Tools</a></li>
+</ul>
+<p>这里只需要安装如下图所示的组件即可<br><img src="/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/install_vs_build_tools.png" alt></p>
+<ul>
+<li><a href="https://www.visualstudio.com/zh-hans/downloads/?rr=https%3A%2F%2Fhatenablog-parts.com%2Fembed%3Furl%3Dhttps%253A%252F%252Fwww.visualstudio.com%252Fja%252Fdownloads%252F#code-zh-hans" target="_blank" rel="noopener">Visual Studio Code</a></li>
+</ul>
+<p>Visual Studio Code里面需要安装如下的两个插件<br><img src="/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/vsc_extension.png" alt></p>
+<p>可能此时会提示需要安装.Net相关的组件，就顺手装上吧。我之前装过所以这里没有提示。</p>
+<h3 id="在UE4工程中设置VS-Code作为代码工具"><a href="#在UE4工程中设置VS-Code作为代码工具" class="headerlink" title="在UE4工程中设置VS Code作为代码工具"></a>在UE4工程中设置VS Code作为代码工具</h3><p><img src="/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/UE_Setting.png" alt><br>如图选择VS Code即可看到如下图相应的菜单项发生了改变。</p>
+<p><img src="/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/file_menu.png" alt></p>
+<h3 id="VS-Code-工程"><a href="#VS-Code-工程" class="headerlink" title="VS Code 工程"></a>VS Code 工程</h3><p>然后，我们尝试生成一个VS Code的工程<br><img src="/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/VSC_Proeject.png" alt></p>
+<p>然后把Debug设置的编译选项设置成Development就可以正常编译代码了。这实际上和VS里面是一致的。<br><img src="/2017/11/09/尝试UE4-18与Visual-Studio-Code的组合/VSC_debug.png" alt></p>
+<p>然后需要注意的是，这里工程的文件目录只有游戏目录的代码，而没有Engine部分的，但是代码跳转还是可以到达我们想要的位置的。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>总的来说，这一个组合还是可以使用的。VS Code完全算的上是一个IDE了，占用的内存比较小，且可定制化很强。一些不喜欢Visual Studio那种大体量的玩家还是可以体验下的。但是对我而言，我还是离不开Visual Studio，毕竟已经习惯VAX+VS的组合了。而且当前版本的工程是不包含Engine的代码的，这点就很不方便。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/UE4/" rel="tag"># UE4</a>
+          
+            <a href="/tags/UE4-18/" rel="tag"># UE4.18</a>
+          
+            <a href="/tags/Visual-Studio-Code/" rel="tag"># Visual Studio Code</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/11/01/Pak文件导出插件/" rel="next" title="Pak文件导出插件">
+                <i class="fa fa-chevron-left"></i> Pak文件导出插件
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/11/15/如何修改UE4游戏窗口样式/" rel="prev" title="如何修改UE4游戏窗口样式">
+                如何修改UE4游戏窗口样式 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Inhaltsverzeichnis
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Übersicht
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">ArcEcho</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">Artikel</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-name">Kategorien</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
+                    <span class="site-state-item-name">schlagwörter</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#下载所需的环境"><span class="nav-number">2.</span> <span class="nav-text">下载所需的环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在UE4工程中设置VS-Code作为代码工具"><span class="nav-number">3.</span> <span class="nav-text">在UE4工程中设置VS Code作为代码工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VS-Code-工程"><span class="nav-number">4.</span> <span class="nav-text">VS Code 工程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ArcEcho</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">Erstellt mit  <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Design – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

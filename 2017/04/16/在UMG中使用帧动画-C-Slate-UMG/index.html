@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh_CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="UI界面通常会使用帧动画来完成一些效果，那么在UE4中如何使用帧动画呢？在搜索一番后没有找到比较好的解决方案，便自行研究并实现了下。注意使用的版本的UE4.15.1。">
+<meta name="keywords" content="UE4,UE4.15.x,c++">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在UMG中使用帧动画(C++&amp;Slate&amp;UMG)">
+<meta property="og:url" content="http://yoursite.com/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/index.html">
+<meta property="og:site_name" content="每天进补一点点！">
+<meta property="og:description" content="UI界面通常会使用帧动画来完成一些效果，那么在UE4中如何使用帧动画呢？在搜索一番后没有找到比较好的解决方案，便自行研究并实现了下。注意使用的版本的UE4.15.1。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/效果.gif">
+<meta property="og:image" content="http://yoursite.com/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/MaterialEditor_Flipbook_Node.png">
+<meta property="og:image" content="http://yoursite.com/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/改变PlayRate.png">
+<meta property="og:image" content="http://yoursite.com/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/ClassDesign.png">
+<meta property="og:image" content="http://yoursite.com/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/EventOptionInEditor.png">
+<meta property="og:image" content="http://yoursite.com/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/HandleEvent.png">
+<meta property="og:image" content="http://yoursite.com/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/InDetails.png">
+<meta property="og:updated_time" content="2019-03-08T04:14:28.857Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="在UMG中使用帧动画(C++&amp;Slate&amp;UMG)">
+<meta name="twitter:description" content="UI界面通常会使用帧动画来完成一些效果，那么在UE4中如何使用帧动画呢？在搜索一番后没有找到比较好的解决方案，便自行研究并实现了下。注意使用的版本的UE4.15.1。">
+<meta name="twitter:image" content="http://yoursite.com/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/效果.gif">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>在UMG中使用帧动画(C++&Slate&UMG) | 每天进补一点点！</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh_CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">每天进补一点点！</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Navigationsleiste an/ausschalten">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Startseite</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archiv</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ArcEcho">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进补一点点！">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">在UMG中使用帧动画(C++&Slate&UMG)
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+
+              
+                
+              
+
+              <time title="Erstellt: 2017-04-16 06:29:28" itemprop="dateCreated datePublished" datetime="2017-04-16T06:29:28+08:00">2017-04-16</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Bearbeitet am</span>
+                
+                <time title="Geändert am: 2019-03-08 12:14:28" itemprop="dateModified" datetime="2019-03-08T12:14:28+08:00">2019-03-08</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">in</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tech/" itemprop="url" rel="index"><span itemprop="name">Tech</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>UI界面通常会使用帧动画来完成一些效果，那么在UE4中如何使用帧动画呢？在搜索一番后没有找到比较好的解决方案，便自行研究并实现了下。注意使用的版本的UE4.15.1。<br><a id="more"></a></p>
+<h2 id="效果预览"><a href="#效果预览" class="headerlink" title="效果预览"></a>效果预览</h2><p>开门见图，这是最终的效果。<br><img src="/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/效果.gif" alt></p>
+<p> 功能点：</p>
+<ul>
+<li>封魔录文字的效果会循环播放，每个loop间有大概1秒的间隔时间。飘带和刀剑文字的金属光泽间则没有。</li>
+<li>按钮在点下时，会播放一个滚动的效果。</li>
+</ul>
+<p>具体运行情况见<a href="https://github.com/ArcEcho/CustomWidgetProj" target="_blank" rel="noopener">github上的源代码</a>。</p>
+<h2 id="阅读本文需要了解的知识"><a href="#阅读本文需要了解的知识" class="headerlink" title="阅读本文需要了解的知识"></a>阅读本文需要了解的知识</h2><ul>
+<li>基本的UMG和材质知识</li>
+<li>UE4 C++及slate的基础知识。 </li>
+</ul>
+<h2 id="UE4自带的功能实现UI中的Flipbook的方法"><a href="#UE4自带的功能实现UI中的Flipbook的方法" class="headerlink" title="UE4自带的功能实现UI中的Flipbook的方法"></a>UE4自带的功能实现UI中的Flipbook的方法</h2><h3 id="Flipbook-Material-Function"><a href="#Flipbook-Material-Function" class="headerlink" title="Flipbook Material Function"></a>Flipbook Material Function</h3><p>我们知道Paper2D中可以展示一张Fipbook的图片的资源，同样的在Material Editor中也提供了一个名叫<code>Flipbook</code>的函数节点来播放动画。<br><img src="/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/MaterialEditor_Flipbook_Node.png" alt><br>这个节点是一个函数，双击可以展开看到里面具体的写法。这里不仔细解释这个函数，简单说下使用方法。通过传入<code>Animation Phase</code>来控制播放到第几帧，如果不传的话，函数内部默认按照时间输入更新动画帧数。这里值得注意的是你的所有的帧会在<strong>一秒内播放完</strong>，所以如果要控制播放速度的话，那么你就需要自己输入时间并乘上你想要的播放速率。<br><img src="/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/改变PlayRate.png" alt><br>总的来说这个方式，还算比较简便。记得把<code>Material Domain</code>改成<code>User Interface</code>，我们就可以将其用在SlateBrush上，然后看到动画效果了。使用动态材质或者材质实例，自己加入些控制的参数就可以简单的控制我们的动画。</p>
+<h3 id="在UMG的蓝图中用Tick函数实现"><a href="#在UMG的蓝图中用Tick函数实现" class="headerlink" title="在UMG的蓝图中用Tick函数实现"></a>在UMG的蓝图中用Tick函数实现</h3><p>User Widget的蓝图中有Tick Event事件，这样我们就有了Delta Time，于是我们就可以来通过逻辑来定时的改变Image的Brush来实现动画。这种方式很直接，也很有效，大部分功能都能实现。</p>
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>但是上述两种方式的缺点也很明显：</p>
+<ul>
+<li><strong>仅使用Flipbook Node</strong>无法实现播放一次就停下来且告知使用者动画结束等功能。可以认为Material Editor本质上是对Shader的一层工具化封装。那么Material Editor里面处理的是当前帧的数据，且不能记录数据。而实现我们要的播放一次，本质上需要记录我们播放的总帧数。实现暂停则需要记录是否是暂停的标识量。故这是无法实现的。另外如果时间使用内置的Input输入的话，我们无法控制每帧的具体时间。打个比方，如果电脑较卡，当第二次调用的时候可能过了x秒，这个时候flipbook就会直接按照x秒来计算要播放第几帧，那么就会出现跳帧的现象。</li>
+<li>使用User Widget蓝图来实现，前面说过的很直接很简单。但是需要控制一个动画在蓝图中要拖很多节点，并对该动画记录相关的变量来控制进程什么的。可以想象当界面上动画较多的时候这将会是多么恐怖的一件事情。当然可以使用蓝图自定义一个控件，在控件内部将这些东西封装起来，然后供别的控件来使用。这确实可行，但是考虑到动画这块是一个比较重的功能，而蓝图天生比C++方式慢很多，所以这种方式也不是很好。</li>
+</ul>
+<h2 id="使用Slate来创建自定义的控件"><a href="#使用Slate来创建自定义的控件" class="headerlink" title="使用Slate来创建自定义的控件"></a>使用Slate来创建自定义的控件</h2><p>这个时候UE4提供源码的优势就体现了。我们可以通过继承相似功能的控件来实现我们想要的效果。这里我们选择了SLeafWidget做父类来创建我们需要的SUIFlipbookImage。另外我也将其用UWidget封装起来这样就可以直接在UMG中调用了。类图如下：<br><img src="/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/ClassDesign.png" alt></p>
+<p>可以看到我们的控件需要支持的操作均有实现。具体代码内容可以参看github上的源码。这里只说说在做的时候需要注意的地方。</p>
+<h3 id="把SlateBrush放在SWidget中"><a href="#把SlateBrush放在SWidget中" class="headerlink" title="把SlateBrush放在SWidget中"></a>把SlateBrush放在SWidget中</h3><p>我这里直接继承SLeafWidget，是为了把SlateBrush放在SUIFlipbookImage中方便操作。自带的SImage仅能通过const方式访问UImage的SlateBrush，而我们这里如果要实现动画效果的话，最好是更改SlateBrush的UVRegion。虽然也可以通过改变OnPaint函数中传入的AllotedGeometry的size和offset来达到效果。但是那种方式感觉怪怪的，我最开始就是那么写的，觉得是一种hack的手段。所以尝试了很久后，将其改为了现在的更改UV的方式了，这也是最直接明了且合乎逻辑的方式。但是这里需要注意的是：</p>
+<ul>
+<li>注意OnPaint后面那个const声明，OnPaint函数里面调用的SlateBrush的时候（成员变量）会被认为是一个const的对象。我个人猜测这里为了防止做一些过于繁重的操作，因为Paint需要较高的效率。实际想一下也可以理解，Brush的UV并不需要在每次绘制的时候重新计算。我们只需要在每次CachedFrameIndex变更的时候去就算下就可以了。</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SUIFlipbookImage</span> :</span> <span class="keyword">public</span> SLeafWidget</span><br><span class="line">&#123;</span><br><span class="line">    FSlateBrush ImageBrush;    </span><br><span class="line"></span><br><span class="line">publick:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> int32 <span class="title">OnPaint</span><span class="params">(...)</span> <span class="keyword">const</span> override</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int32 SUIFlipbookImage::OnPaint(...) <span class="keyword">const</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    ImageBrush.SetUVRegion(...);  <span class="comment">//This will not be compiled.</span></span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>初始化SlateBrush的时候需要将TileType设置为NoTile，默认构造的SlateBrush的是Tilling。这点我由于开始不知道从CoreStyle里面的DefaultSlateBrush取到的也是Tilling(实际上时对SlateBrush的原理不是很理解造成的)，浪费了很多时间。</li>
+</ul>
+<h3 id="在UUIFlipbook中仅让用户选择Texture"><a href="#在UUIFlipbook中仅让用户选择Texture" class="headerlink" title="在UUIFlipbook中仅让用户选择Texture"></a>在UUIFlipbook中仅让用户选择Texture</h3><p>Image中可以将Material或者Texture等Asset设置给SlateBrush使用，这得益于UImage中提供的一系列转化各种资源的工具函数。但是对于UIFlipbook而言，我们只需要一张简单的Texture足矣。这里只需要在UUIFlipbook中声明一个<code>UTexture2D*</code>类型的成员，并在SynchronizeProperties的时候将其设置给给SUIFlipbookImage的SlateBrush设置就好了。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">   <span class="comment">/**A texture is just enough, so here just surpport texture instead of slate brush */</span></span><br><span class="line">    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = <span class="string">"UIFlipbook"</span>, meta = (sRGB = <span class="string">"true"</span>))</span><br><span class="line">        UTexture2D* FlipbookImage;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> UUIFlipbook::SynchronizeProperties()</span><br><span class="line">&#123;</span><br><span class="line">    Super::SynchronizeProperties();</span><br><span class="line"></span><br><span class="line">    TAttribute&lt;FSlateColor&gt; ColorAndOpacityBinding = OPTIONAL_BINDING(FSlateColor, ColorAndOpacity);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (MyImage.IsValid())</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">        </span><br><span class="line">       MyImage-&gt;SetImageRes(FlipbookImage);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="在一个动画Loop结束时抛出事件"><a href="#在一个动画Loop结束时抛出事件" class="headerlink" title="在一个动画Loop结束时抛出事件"></a>在一个动画Loop结束时抛出事件</h3><p>这个可以参照Btton的OnClick事件写法来完成。需要先声明一个<strong>多播委派</strong>（区别于UImage的MouseDown绑定，因为要停供时间见，故必须是多播委派。）<code>DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAnimationEndEvent)</code>。然后再声明一个<code>FOnAnimationEndEvent</code>的UPROPERTY成员以及一个处理的函数。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">/** </span></span><br><span class="line"><span class="comment"> * When an animation loop is end, this event will notify </span></span><br><span class="line"><span class="comment"> * depends on your parameter in PlayAnimation().</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">UPROPERTY(BlueprintAssignable, Category = <span class="string">"UIFlipbook|Events"</span>)</span><br><span class="line">    FOnAnimationEndEvent OnAnimationEnd;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">HandleAnimationEnd</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
+<p>这样就可以在编辑器的Details栏event区域看到我们的事件绑定的入口。点击后面的按钮就可以查看/添加相应的事件绑定。<br><img src="/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/EventOptionInEditor.png" alt></p>
+<p>当然为了配合这个委派，SUIFlipbookImage中也需要声明一个<code>DECLARE_DELEGATE(FAnimationEndDelegate)</code>，并创建<code>FAnimationEndDelegate OnAnimationEndHandler</code>成员。并提供如下函数来让UUFlipbook绑定相应的委派。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> SUIFlipbookImage::SetOnAnimationEnd(FAnimationEndDelegate EventHandler)</span><br><span class="line">&#123;</span><br><span class="line">    OnAnimationEndHandler = EventHandler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>然后在UUIFlipbook中的<code>SynchronizeProperties</code>函数中设置绑定。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> UUIFlipbook::SynchronizeProperties()</span><br><span class="line">&#123;</span><br><span class="line">    Super::SynchronizeProperties();</span><br><span class="line"></span><br><span class="line">    TAttribute&lt;FSlateColor&gt; ColorAndOpacityBinding = OPTIONAL_BINDING(FSlateColor, ColorAndOpacity);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (MyImage.IsValid())</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">        </span><br><span class="line">        MyImage-&gt;SetOnAnimationEnd(BIND_UOBJECT_DELEGATE(FAnimationEndDelegate, HandleAnimationEnd));</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>并在<code>HandleAnimationEnd</code>函数中去dipatch事件：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> UUIFlipbook::HandleAnimationEnd()</span><br><span class="line">&#123;</span><br><span class="line">    OnAnimationEnd.Broadcast();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>最后回到我们的SUIFlipbookImage,当需要Notify end event的时候去调用<code>NotifyAnimationEnd</code>就可以了。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">void SUIFlipbookImage::NotifyAnimationEnd()</span><br><span class="line">&#123;</span><br><span class="line">    if (OnAnimationEndHandler.IsBound())</span><br><span class="line">    &#123;</span><br><span class="line">        OnAnimationEndHandler.Execute();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这样我们就实现了，当SUIFlipbookImage播放完一轮动画后，抛出相应的结束事件。并执行蓝图中的处理代码。<br><img src="/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/HandleEvent.png" alt></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>以下是最终我们的UIFlipbook控件在UMG中使用的时候提供的选项，运用它可以实现开头的gif图中展示的效果了。</p>
+<p><img src="/2017/04/16/在UMG中使用帧动画-C-Slate-UMG/InDetails.png" alt></p>
+<p>因为有UE4的源码，我们可以看到其背后实现的原理。虽然整个系统非常的繁杂，但是使用合理的方式去扩展其所提供的功能确实很简单的。这样可以避免很多丑陋的hack式的solution。也许我这里提供的方式不是最好的，但是比较接近我想要的功能了。且从这部分代码的实现过程中我对Slate部分理解更深了。如果你有什么疑问或者我有什么错误，或者有更优雅的实现方式。欢迎在下方留言。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/UE4/" rel="tag"># UE4</a>
+          
+            <a href="/tags/UE4-15-x/" rel="tag"># UE4.15.x</a>
+          
+            <a href="/tags/c/" rel="tag"># c++</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/04/08/Hexo-Next下添加版权声明模块/" rel="next" title="Hexo Next下添加版权声明模块">
+                <i class="fa fa-chevron-left"></i> Hexo Next下添加版权声明模块
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/04/20/在UE中使用LoadingScreen/" rel="prev" title="在UE中使用LoadingScreen">
+                在UE中使用LoadingScreen <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Inhaltsverzeichnis
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Übersicht
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">ArcEcho</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">Artikel</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-name">Kategorien</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
+                    <span class="site-state-item-name">schlagwörter</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#效果预览"><span class="nav-number">1.</span> <span class="nav-text">效果预览</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#阅读本文需要了解的知识"><span class="nav-number">2.</span> <span class="nav-text">阅读本文需要了解的知识</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UE4自带的功能实现UI中的Flipbook的方法"><span class="nav-number">3.</span> <span class="nav-text">UE4自带的功能实现UI中的Flipbook的方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flipbook-Material-Function"><span class="nav-number">3.1.</span> <span class="nav-text">Flipbook Material Function</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在UMG的蓝图中用Tick函数实现"><span class="nav-number">3.2.</span> <span class="nav-text">在UMG的蓝图中用Tick函数实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分析"><span class="nav-number">3.3.</span> <span class="nav-text">分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用Slate来创建自定义的控件"><span class="nav-number">4.</span> <span class="nav-text">使用Slate来创建自定义的控件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#把SlateBrush放在SWidget中"><span class="nav-number">4.1.</span> <span class="nav-text">把SlateBrush放在SWidget中</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在UUIFlipbook中仅让用户选择Texture"><span class="nav-number">4.2.</span> <span class="nav-text">在UUIFlipbook中仅让用户选择Texture</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在一个动画Loop结束时抛出事件"><span class="nav-number">4.3.</span> <span class="nav-text">在一个动画Loop结束时抛出事件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ArcEcho</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">Erstellt mit  <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Design – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

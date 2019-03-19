@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh_CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="优化靠猜？解决bug靠蒙？不不不，要靠调试。那么什么是调试呢？本文就如何调试UE4工程简略提提一些概念。">
+<meta name="keywords" content="UE4,VisulaStudio">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UE4工程调试简易小结">
+<meta property="og:url" content="http://yoursite.com/2017/07/28/UE4工程调试简易小结/index.html">
+<meta property="og:site_name" content="每天进补一点点！">
+<meta property="og:description" content="优化靠猜？解决bug靠蒙？不不不，要靠调试。那么什么是调试呢？本文就如何调试UE4工程简略提提一些概念。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:updated_time" content="2019-03-08T04:14:28.837Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="UE4工程调试简易小结">
+<meta name="twitter:description" content="优化靠猜？解决bug靠蒙？不不不，要靠调试。那么什么是调试呢？本文就如何调试UE4工程简略提提一些概念。">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/07/28/UE4工程调试简易小结/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>UE4工程调试简易小结 | 每天进补一点点！</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh_CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">每天进补一点点！</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Navigationsleiste an/ausschalten">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Startseite</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archiv</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/07/28/UE4工程调试简易小结/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ArcEcho">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进补一点点！">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">UE4工程调试简易小结
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+
+              
+                
+              
+
+              <time title="Erstellt: 2017-07-28 10:40:45" itemprop="dateCreated datePublished" datetime="2017-07-28T10:40:45+08:00">2017-07-28</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Bearbeitet am</span>
+                
+                <time title="Geändert am: 2019-03-08 12:14:28" itemprop="dateModified" datetime="2019-03-08T12:14:28+08:00">2019-03-08</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">in</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tech/" itemprop="url" rel="index"><span itemprop="name">Tech</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>优化靠猜？解决bug靠蒙？不不不，要靠调试。那么什么是调试呢？本文就如何调试UE4工程简略提提一些概念。</p>
+<a id="more"></a>
+<h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><blockquote>
+<p>Debugging is the process of finding and resolving of defects that prevent correct operation of computer software or a system. Debugging tactics can involve interactive debugging, control flow analysis, unit testing, integration testing, log file analysis, monitoring at the (application or system level, memory dumps, and profiling.</p>
+</blockquote>
+<p>以上是摘自维基百科对调试的释义。值得注意的是维基百科上中文版的解释只包含第一句的“除错”的概念，而英文版却提到了调试过程使用的多种策略，如log文件分析，单元测试等。这些东西往往也是容易被我们不重视的步骤。</p>
+<h3 id="为什么要调试"><a href="#为什么要调试" class="headerlink" title="为什么要调试"></a>为什么要调试</h3><p>调试是程序员的基本功，厉害的程序员往往其调试功力也会相当的深厚。之前释义中提到的，调试的主要用途是用来除错，且作用远远不只是调错，它还可以在很多方面帮助到我们。</p>
+<ul>
+<li>帮助理解代码：当拿到一份陌生且复杂的代码后，我如果直接尝试从全局去掌控代码，往往可能会迷失在茫茫多抽象概念及分层中，然后始乱终弃。如果能提供相关的调试手段，那么不啻于在黑夜中为我点亮一盏路灯。通过断点、单步等操作摸清关节，理出大致脉络，从而快速理解代码。</li>
+<li>帮助来优化程序：编程不是玄学。调试靠蒙，优化靠猜是肯定是不靠谱的。正如释义中提到的profiling，可以通过调试的一些手段来帮助优化。UE4本身就提供了大量的profiling相关的宏以及完善的图像化工具，更是支持第三方工具插件。这实际上也是包含在调试中的。</li>
+</ul>
+<h3 id="如何进行调试"><a href="#如何进行调试" class="headerlink" title="如何进行调试"></a>如何进行调试</h3><p>调试的手段有很多，简单到阅读代码人脑调试，复杂到IDE提供各种调试信息单步执行。说到这里不得不赞叹人类的智慧，我很难想象在复杂的编程中没有IDE的情景。通常使用一个完善的IDE时，我们可以获得相应的call stack、当前可以访问的变量，可以添加断点，可以添加监视，还可以追踪代码执行流程，甚至还可以查看内存信息等。所以当前阶段活用好IDE提供的调试工具基本上就可以满足绝大多数的调试需求了。</p>
+<h3 id="如何调试UE4工程（windows-visual-studio）"><a href="#如何调试UE4工程（windows-visual-studio）" class="headerlink" title="如何调试UE4工程（windows + visual studio）"></a>如何调试UE4工程（windows + visual studio）</h3><p>我这里主要说说windows平台下如何使用visual studio来进行调试。但是关于如何使用VS调试的功能我不会累述，因为VS官方提供的资料比我这么只言片语会更系统和详细。我只会提到UE4工程调试过程中需要注意的地方。</p>
+<h4 id="调试符号文件"><a href="#调试符号文件" class="headerlink" title="调试符号文件"></a>调试符号文件</h4><p>调试符号文件<a href="https://en.wikipedia.org/wiki/Debug_symbol" target="_blank" rel="noopener">debugging symbol</a>,在VS这边对应<code>.pdb（progra data base）</code>文件。这个就是我们在调试的时候对应到代码运行到哪一行的依据，也就是说如果某段代码缺少相应的pdb文件，那么在调试的时候我们是无法跟踪在这段代码块的内容的。在VS可能连相应的call stack都会显示不全。所以有没有对应pdb是我们能不能使用VS来调试对应代码的决定因素。对于UE4工程这种体量的程序来说，pdb往往会比较大。一般来说pdb文件也不会暴露给一般用户。</p>
+<h4 id="UE4安装版和源码编译版调试的区别"><a href="#UE4安装版和源码编译版调试的区别" class="headerlink" title="UE4安装版和源码编译版调试的区别"></a>UE4安装版和源码编译版调试的区别</h4><p>通过Epic Game Launcher安装的UE4引擎程序属于安装版，而从github上直接下载相应的源码并编译属于编译版。就调试这边而言，虽然安装版也支持下载相应的pdb文件来帮助调试，但是可能是由于某些设置的问题使得最终打包的程序对于源码部分的代码pdb对应不全，导致最后无法调试源码部分代码。安装版在打包时，工程只会链接成一个可执行程序，相关代码会以静态链接库的方式被我们的工程程序引用，而这个过程中由于某些未知原因没有正确的生成相关的pdb。这一点你可以通过同一个工程分别使用安装版和编译版来打包程序，并且比较其生成的pdb大小来得知（要获得打包程序的pdb，需要在package settings里面勾选输出debug info的选项）。不过就editor中的调试而言，当你下载了相应调试符号数据后，可以比较正常的调试，因为editor用到的各种dll的pdb都是全的。而编译版生成的pdb则相对较全，所以可以正常的进行调试（不包括被优化的代码部分）。</p>
+<h3 id="调试时需要注意的地方"><a href="#调试时需要注意的地方" class="headerlink" title="调试时需要注意的地方"></a>调试时需要注意的地方</h3><p>上面简单的介绍了下调试的过程，对于调试的细节没有讲，也不想讲，毕竟没有文档讲得详细，粘贴过来也是冗余。但是有些调试的时候遇到的坑或者比较重要的技巧还是需要提出来。</p>
+<h4 id="使用VS的Attach-to-Process来进行调试"><a href="#使用VS的Attach-to-Process来进行调试" class="headerlink" title="使用VS的Attach to Process来进行调试"></a>使用VS的Attach to Process来进行调试</h4><p>直接上一个视频教程：<a href="https://www.youtube.com/watch?v=juPCqN-Rb1E" target="_blank" rel="noopener">地址</a></p>
+<h4 id="使用dump文件定位bug"><a href="#使用dump文件定位bug" class="headerlink" title="使用dump文件定位bug"></a>使用dump文件定位bug</h4><p>当程序崩溃后，在saved目录下会生成相应的dump文件，这种文件包含了对我们在打包后来查错而言的非常宝贵的数据。如果配合之前提到的pdb文件我们能够知道崩溃时的大致现场，比如call stack、variables等，当然这个信息的详细程度是和你提供的pdb和源码的关联程度挂钩的。至于具体怎么使用暂时就不累述，这里只是抛出dump文件这么个概念。</p>
+<h4 id="调试的时候注意配置对应"><a href="#调试的时候注意配置对应" class="headerlink" title="调试的时候注意配置对应"></a>调试的时候注意配置对应</h4><p>VS中的<a href="https://msdn.microsoft.com/en-us/library/kkz9kefa(v=vs.100" target="_blank" rel="noopener">build configuration</a>.aspx)决定生成工程时的各种配置，包括预处理宏、编译前后的脚本等等。且不同版本生成的pdb也不同。一般来说，editor下选择developement editor，打包程序则是根据你打包时选的是shipping、debugGame、developement来分别对应的。当然还有target platform也需要对应。如果不对应则无法正常断点或者定位到部分相应代码的。另外UE4的工程不是常规的C++工程，我尝试了下使用start debug instnce方式来调试，没有成功。可能是我没有正确设置，后面会继续思考。</p>
+<h4 id="调试时你看到的和你想的不一致"><a href="#调试时你看到的和你想的不一致" class="headerlink" title="调试时你看到的和你想的不一致"></a>调试时你看到的和你想的不一致</h4><p>编译之后的程序，可能经过了各种优化，导致一些最终编译的代码和源码的不一致。另外在可能缺少一些类型的内存解析的xml导致在显示的可能和你想的不一致。这种问题暂时没有很好解决方法，不过可以使用未优化的版本排查，或者就是加log了。</p>
+<h4 id="图形调试工具"><a href="#图形调试工具" class="headerlink" title="图形调试工具"></a>图形调试工具</h4><p>这里的提到图形调试工具，我还想表明在某些方面我们可以借助一些第三方的调试工具。比如RenderDoc来进行图形调试，抓包工具来调试网络部分内容。调试不只是局限在IDE中，只要能够帮助你解决问题都是调试手段，所谓“不管黑猫白猫，捉到老鼠就是好猫”。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>调试是需要长期积累经验技巧的基本功，也是成为一个高效程序员的必备的能力，我也在且行且学中。这篇文章只是简单提到了一些调试的概念，之后如果有觉得有价值的东西我会继续补充。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/UE4/" rel="tag"># UE4</a>
+          
+            <a href="/tags/VisulaStudio/" rel="tag"># VisulaStudio</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/02/UE4-Pak-相关知识总结/" rel="next" title="UE4 Pak 相关知识总结">
+                <i class="fa fa-chevron-left"></i> UE4 Pak 相关知识总结
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/09/18/Slate进阶应用之FSlateDrawElement/" rel="prev" title="Slate进阶应用之FSlateDrawElement">
+                Slate进阶应用之FSlateDrawElement <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Inhaltsverzeichnis
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Übersicht
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">ArcEcho</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">Artikel</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-name">Kategorien</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
+                    <span class="site-state-item-name">schlagwörter</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本概念"><span class="nav-number">1.</span> <span class="nav-text">基本概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么要调试"><span class="nav-number">2.</span> <span class="nav-text">为什么要调试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何进行调试"><span class="nav-number">3.</span> <span class="nav-text">如何进行调试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何调试UE4工程（windows-visual-studio）"><span class="nav-number">4.</span> <span class="nav-text">如何调试UE4工程（windows + visual studio）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#调试符号文件"><span class="nav-number">4.1.</span> <span class="nav-text">调试符号文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#UE4安装版和源码编译版调试的区别"><span class="nav-number">4.2.</span> <span class="nav-text">UE4安装版和源码编译版调试的区别</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#调试时需要注意的地方"><span class="nav-number">5.</span> <span class="nav-text">调试时需要注意的地方</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#使用VS的Attach-to-Process来进行调试"><span class="nav-number">5.1.</span> <span class="nav-text">使用VS的Attach to Process来进行调试</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用dump文件定位bug"><span class="nav-number">5.2.</span> <span class="nav-text">使用dump文件定位bug</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#调试的时候注意配置对应"><span class="nav-number">5.3.</span> <span class="nav-text">调试的时候注意配置对应</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#调试时你看到的和你想的不一致"><span class="nav-number">5.4.</span> <span class="nav-text">调试时你看到的和你想的不一致</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#图形调试工具"><span class="nav-number">5.5.</span> <span class="nav-text">图形调试工具</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ArcEcho</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">Erstellt mit  <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Design – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
