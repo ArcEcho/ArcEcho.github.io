@@ -99,7 +99,7 @@
 
 
   <meta name="description" content="传统的事件系统需要预先定义事件类型才能使用。UE4使用了delegate的方式来代替传统的事件系统，因此自己在造玩具代码的时候也想模仿下。本文通过C++11提供的std::function通过非常粗陋的方式实现了一版delegate，包含multicast delegate。">
-<meta name="keywords" content="C++11,C++">
+<meta name="keywords" content="C++,C++11">
 <meta property="og:type" content="article">
 <meta property="og:title" content="使用C++11实现简单的delegate v0.1">
 <meta property="og:url" content="http://yoursite.com/2017/05/28/使用C-11实现简单的multicast-delegate Ver0.1/index.html">
@@ -194,7 +194,7 @@
   </div>
 
   <div class="site-nav-toggle">
-    <button aria-label="Navigationsleiste an/ausschalten">
+    <button aria-label="Toggle navigation bar">
       <span class="btn-bar"></span>
       <span class="btn-bar"></span>
       <span class="btn-bar"></span>
@@ -222,7 +222,7 @@
 
     
 
-    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Startseite</a>
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Beranda</a>
 
   </li>
         
@@ -239,7 +239,7 @@
 
     
 
-    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archiv</a>
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Arsip</a>
 
   </li>
 
@@ -327,14 +327,14 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Veröffentlicht am</span>
+                <span class="post-meta-item-text">Diposting di</span>
               
 
               
                 
               
 
-              <time title="Erstellt: 2017-05-28 10:40:45" itemprop="dateCreated datePublished" datetime="2017-05-28T10:40:45+08:00">2017-05-28</time>
+              <time title="Post created: 2017-05-28 10:40:45" itemprop="dateCreated datePublished" datetime="2017-05-28T10:40:45+08:00">2017-05-28</time>
             
 
             
@@ -349,9 +349,9 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 
-                  <span class="post-meta-item-text">Bearbeitet am</span>
+                  <span class="post-meta-item-text">Edited on</span>
                 
-                <time title="Geändert am: 2019-03-08 12:14:28" itemprop="dateModified" datetime="2019-03-08T12:14:28+08:00">2019-03-08</time>
+                <time title="Updated at: 2019-03-08 12:14:28" itemprop="dateModified" datetime="2019-03-08T12:14:28+08:00">2019-03-08</time>
               
             
           </span>
@@ -365,7 +365,7 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               
-                <span class="post-meta-item-text">in</span>
+                <span class="post-meta-item-text">Di</span>
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tech/" itemprop="url" rel="index"><span itemprop="name">Tech</span></a></span>
@@ -454,9 +454,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/C-11/" rel="tag"># C++11</a>
-          
             <a href="/tags/C/" rel="tag"># C++</a>
+          
+            <a href="/tags/C-11/" rel="tag"># C++11</a>
           
         </div>
       
@@ -527,10 +527,10 @@
       
         <ul class="sidebar-nav motion-element">
           <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
-            Inhaltsverzeichnis
+            Daftar Isi
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview-wrap">
-            Übersicht
+            Ikhtisar
           </li>
         </ul>
       
@@ -550,8 +550,8 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">17</span>
-                    <span class="site-state-item-name">Artikel</span>
+                    <span class="site-state-item-count">18</span>
+                    <span class="site-state-item-name">posting</span>
                   </a>
                 </div>
               
@@ -572,7 +572,7 @@
                       
                     
                     <span class="site-state-item-count">2</span>
-                    <span class="site-state-item-name">Kategorien</span>
+                    <span class="site-state-item-name">kategori</span>
                   </a>
                 </div>
               
@@ -634,8 +634,16 @@
                     
                       
                     
-                    <span class="site-state-item-count">20</span>
-                    <span class="site-state-item-name">schlagwörter</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">24</span>
+                    <span class="site-state-item-name">tags</span>
                   </a>
                 </div>
               
@@ -703,7 +711,7 @@
 </div>
 
 
-  <div class="powered-by">Erstellt mit  <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
 
 
 
@@ -711,7 +719,7 @@
 
 
 
-  <div class="theme-info">Design – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+  <div class="theme-info">Tema – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
 
 
 
